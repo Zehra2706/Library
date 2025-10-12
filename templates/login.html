@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width , initial-scale=1.0" />
+    <title>Login</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h2 {
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .container {
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 25px 40px;
+        border-radius: 15px;
+        text-align: center;
+        width: 300px;
+      }
+
+      input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+      }
+      button {
+        background-color: #987654;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        font-size: 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin: 10px 0;
+        width: 200px;
+      }
+
+      button:hover {
+        background-color: #4caf50;
+      }
+
+      a {
+        display: block;
+        margin-top: 10px;
+        color: #333;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+
+      .error {
+        color: red;
+        margin-top: 10px;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Giriş Yap</h2>
+      <form id="loginForm">
+        <input
+          type="text"
+          id="username"
+          name="name"
+          placeholder="Kullanıcı adı"
+          required
+        />
+        <input
+          type="password"
+          id="password"
+          name="parola"
+          placeholder="Parola"
+          required
+        />
+
+        <button type="submit">Giriş</button>
+      </form>
+      <div class="error" id="errorMsg"></div>
+      <a href="signup.html">Hesabın yok mu? Kayıt ol</a>
+    </div>
+
+    <script>
+      document
+        .getElementById("loginForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const username = e.target.username.value;
+          const password = e.target.password.value;
+
+          try {
+            const response = await fetch("http://127.0.0.1:5000/login", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ username, password }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+              alert("Giriş başarılı! Rol: " + result.rol);
+              window.location.href = result.redirect;
+            } else {
+              alert(result.hata); // artık undefined değil
+            }
+          } catch (err) {
+            console.error(err);
+            alert("Sunucuya bağlanırken hata oluştu.");
+          }
+        });
+    </script>
+  </body>
+</html>
