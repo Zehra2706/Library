@@ -59,6 +59,7 @@ class book(db.Model):
     yazar=db.Column(db.String(150),nullable=False)
     kategori_id=db.Column(db.Integer,db.ForeignKey('category.id'))
     mevcut= db.Column(db.Boolean, default=True)
+    image_url = db.Column(db.String(200), nullable=True)
 
 class borrow(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -149,50 +150,69 @@ def sifre_degistir():
 
 
 
-# @app.route('/kitap', methods=['POST'])
-# def kitap_ekle():
-#     data=request.get_json()
-#     yeni_kitap=book(
-#         başlık=data["başlık"],
-#         yazar=data["yazar"],
-#         kategori_id=data["kategori_id"],
-#         # mevcut=data["mevcut"]
-#     )
-#     db.session.add(yeni_kitap)
-#     db.session.commit()
-#     return jsonify({"mesaj": "Kitap eklendi."})
+@app.route('/kitap', methods=['POST'])
+def kitap_ekle():
+    data=request.get_json()
+    yeni_kitap=book(
+        başlık=data["başlık"],
+        yazar=data["yazar"],
+        kategori_id=data["kategori_id"],
+        # mevcut=data["mevcut"]
+    )
+    db.session.add(yeni_kitap)
+    db.session.commit()
+    return jsonify({"mesaj": "Kitap eklendi."})
 
-# @app.route('/odunc', methods=['POST'])
-# def odunc_ver():
-#     data=request.get_json()
-#     kitap=book.query.get(data['book_id'])
-#     if not kitap.mevcut:
-#        return jsonify({"hata": "Kitap zaten ödünçte"}),400
-#     kitap.mevcut=False
-#     odunc=borrow(user_id=data['user_id'],book_id=data['book_id'])
-#     db.session.add(odunc)
-#     db.session.commit()
-#     return jsonify({"mesaj":" Kitap ödünç verildi."})
+@app.route('/kitaplar', methods=['GET'])
+def kitaplari_getir():
+    arama=request.args.get('arama')
+    if arama:
+        kitaplar=book.query.filter(book.başlık.like(f"%{arama}%")).all()
+    else:
+        kitaplar=book.query.all()
+
+    liste=[]
+    for k in kitaplar:
+        liste.append({
+            "id":k.id,
+            "başlık":k.başlık,
+            "yazar":k.yazar,
+            "kategori_id":k.kategori_id,
+            "mevcut":k.mevcut
+        })     
+    return jsonify(liste)  
+
+@app.route('/odunc', methods=['POST'])
+def odunc_ver():
+    data=request.get_json()
+    kitap=book.query.get(data['book_id'])
+    if not kitap.mevcut:
+       return jsonify({"hata": "Kitap zaten ödünçte"}),400
+    kitap.mevcut=False
+    odunc=borrow(user_id=data['user_id'],book_id=data['book_id'])
+    db.session.add(odunc)
+    db.session.commit()
+    return jsonify({"mesaj":" Kitap ödünç verildi."})
 
 
-# @app.route('/iade/<int:barrow_id>',methods=['PUT'])
-# def kitap_iade(barrow_id):
-#     odunc=borrow.query.get(barrow_id)
-#     if not odunc:
-#         return jsonify({"hata":"Kayıt Bulunamadı"})
+@app.route('/iade/<int:barrow_id>',methods=['PUT'])
+def kitap_iade(barrow_id):
+    odunc=borrow.query.get(barrow_id)
+    if not odunc:
+        return jsonify({"hata":"Kayıt Bulunamadı"})
     
-#     odunc.iade_tarihi=datetime.utcnow()
+    odunc.iade_tarihi=datetime.utcnow()
 
-#     # ceza 7 günden fazla geçerse her gün iki tl
-#     fark=(odunc.iade_tarihi - odunc.alış_tarihi).days
-#     if fark>7:
-#         odunc.ceza = (fark - 7)*2.0
+    # ceza 7 günden fazla geçerse her gün iki tl
+    fark=(odunc.iade_tarihi - odunc.alış_tarihi).days
+    if fark>7:
+        odunc.ceza = (fark - 7)*2.0
 
-#     kitap=book.query.get(odunc.book_id)
-#     kitap.mevcut=True
+    kitap=book.query.get(odunc.book_id)
+    kitap.mevcut=True
 
-#     db.session.commit()
-#     return jsonify({"mesaj":"Kitap iade alındı", " ceza ":odunc.ceza})    
+    db.session.commit()
+    return jsonify({"mesaj":"Kitap iade alındı", " ceza ":odunc.ceza})    
 
 
 
@@ -252,24 +272,7 @@ def sifre_degistir():
 #         })
 #         return jsonify(liste)
 
-# @app.route('/kitaplar', methods=['GET'])
-# def kitaplari_getir():
-#     arama=request.args.get('arama')
-#     if arama:
-#         kitaplar=book.query.filter(book.başlık.like(f"%{arama}%")).all()
-#     else:
-#         kitaplar=book.query.all()
-
-#     liste=[]
-#     for k in kitaplar:
-#         liste.append({
-#             "id":k.id,
-#             "başlık":k.başlık,
-#             "yazar":k.yazar,
-#             "kategori_id":k.kategori_id,
-#             "mevcut":k.mevcut
-#         })     
-#     return jsonify(liste)  
+ 
 
 # @app.route('/gecikenler',methods=['GET'])
 # def geciken_kitaplar():
