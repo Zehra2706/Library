@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Şifrenizi Degistirin</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width , initial-scale=1.0" />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h2 {
+        color: #987654;
+        margin-bottom: 20px;
+      }
+
+      input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        border-radius: 8px;
+        border: 1px solid #aaa;
+      }
+
+      button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      .button:hover {
+        background-color: #4caf50;
+        /* color: white; */
+        transform: scale(1.05);
+      }
+
+      a {
+        display: block;
+        margin-top: 10px;
+        color: #333;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+
+      .error {
+        color: red;
+        margin-top: 10px;
+      }
+
+      .success {
+        color: green;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Şifre Değiştir</h2>
+      <form id="sifreForm">
+        <input
+          type="password"
+          id="eskiSifre"
+          placeholder="Mevcut Şifre"
+          required
+        />
+        <input
+          type="password"
+          id="yeniSifre"
+          placeholder="Yeni Şifre"
+          required
+        />
+        <input
+          type="password"
+          id="yeniSifreTekrar"
+          placeholder="Yeni Şifre (Tekrar)"
+          required
+        />
+        <button type="submit">Kaydet</button>
+      </form>
+      <div id="mesaj"></div>
+      <a href="kullanici_panel.html">Geri Dön</a>
+    </div>
+  </body>
+  <script>
+    document
+      .getElementById("sifreForm")
+      .addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const isim = localStorage.getItem("isim");
+        const eskiSifre = document.getElementById("eskiSifre").value;
+        const yeniSifre = document.getElementById("yeniSifre").value;
+        const yeniSifreTekrar =
+          document.getElementById("yeniSifreTekrar").value;
+
+        const mesajDiv = document.getElementById("mesaj");
+
+        if (yeniSifre !== yeniSifreTekrar) {
+          mesajDiv.textContent = "Yeni Şifreler Uyuşmuyor!";
+          mesajDiv.className = "error";
+          return;
+        }
+
+        if (!eskiSifre || !yeniSifre) {
+          alert("Her iki alan da doldurulmalıdır!");
+          return;
+        }
+
+        try {
+          const response = await fetch("http://127.0.0.1:5000/sifre_degistir", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              isim: isim,
+              eskiSifre: eskiSifre,
+              yeniSifre: yeniSifre,
+            }),
+          });
+
+          const result = await response.json();
+
+          if (response.ok) {
+            mesajDiv.textContent = result.mesaj;
+            mesajDiv.className = "success";
+            setTimeout(() => {
+              window.location.href = "kullanici_panel.html";
+            }, 2000);
+          } else {
+            mesajDiv.textContent = result.hata;
+            mesajDiv.className = "error";
+          }
+        } catch (err) {
+          mesajDiv.textContent = "Sunucu Hatası Oluştu!";
+          mesajDiv.className = "error";
+        }
+      });
+  </script>
+</html>

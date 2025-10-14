@@ -1,23 +1,68 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
   <head>
     <title>Personel Paneli</title>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h1 {
+        color: #987654;
+        margin-bottom: 80px;
+        font-size: 45px;
+      }
+      button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      .button:hover {
+        background-color: #4caf50;
+        /* color: white; */
+        transform: scale(1.05);
+      }
+    </style>
   </head>
   <body>
-    <h1>Personel Paneline Hoşgeldiniz</h1>
+    <h1 id="hosgeldin">Personel Paneline Hoşgeldin</h1>
+    <button>Kitapları Görüntüle</button>
+    <button>Kitap Ekle</button>
+    <button>Kategori Ekle</button>
+    <button>Ödünç</button>
+
     <a href="/">Ana sayfaya dön</a>
+
+    <script>
+      const isim = localStorage.getItem("isim");
+      if (isim) {
+        document.getElementById(
+          "hosgeldin"
+        ).textContent = `Personel Paneline Hoşgeldin ${isim}`;
+      } else {
+        document.getElementById("hosgeldin").textContent =
+          "Personel Paneline Hoşgeldin";
+      }
+    </script>
   </body>
 </html>
-=======
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Personel Paneli</title>
-  </head>
-  <body>
-    <h1>Personel Paneline Hoşgeldiniz</h1>
-    <a href="/">Ana sayfaya dön</a>
-  </body>
-</html>
->>>>>>> origin/main

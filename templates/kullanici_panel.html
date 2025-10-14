@@ -1,23 +1,70 @@
-<<<<<<< HEAD
 <!DOCTYPE html>
 <html>
   <head>
     <title>Kullanıcı Paneli</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h1 {
+        color: #987654;
+        margin-bottom: 80px;
+        font-size: 45px;
+      }
+      button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      button:hover {
+        background-color: #4caf50;
+        transform: scale(1.05);
+      }
+    </style>
   </head>
   <body>
-    <h1>Kullanıcı Paneline Hoşgeldiniz</h1>
+    <h1 id="hosgeldin">Kullanıcı Paneline Hoşgeldin</h1>
+    <button>Kitapları Gör</button>
+    <button>Ödünç Al</button>
+    <button>Cezalar</button>
+    <button id="sifreDegistirBtn">Şifre Değiştir</button>
     <a href="/">Ana sayfaya dön</a>
+    <script>
+      const isim = localStorage.getItem("isim");
+      if (isim) {
+        document.getElementById(
+          "hosgeldin"
+        ).textContent = `Kullanıcı Paneline Hoşgeldin ${isim}`;
+      } else {
+        document.getElementById("hosgeldin").textContent =
+          "Kullanıcı Paneline Hoşgeldin";
+      }
+
+      document
+        .getElementById("sifreDegistirBtn")
+        .addEventListener("click", () => {
+          window.location.href = "sifre_degistir.html";
+        });
+    </script>
   </body>
 </html>
-=======
-<!DOCTYPE html>
-<html>
-  <head>
-    <title>Kullanıcı Paneli</title>
-  </head>
-  <body>
-    <h1>Kullanıcı Paneline Hoşgeldiniz</h1>
-    <a href="/">Ana sayfaya dön</a>
-  </body>
-</html>
->>>>>>> origin/main

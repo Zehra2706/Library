@@ -1,13 +1,13 @@
-import email
 from flask import Flask, jsonify, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import pymysql
-from flask import Flask, request, jsonify
+# from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
-CORS(app, origins=["http://127.0.0.1:5500"])
+
+CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
 
 
 pymysql.install_as_MySQLdb()
@@ -84,8 +84,15 @@ def login():
 
     if user:
         rol = user.rol
-        redirect_page = "/personel_panel" if rol == "admin" else "/kullanici_panel"
-        return jsonify({"success": True, "rol": rol, "redirect": redirect_page})
+
+        if rol== "personel":
+            redirect_page="personel_panel.html"
+        elif rol == "kullanıcı":
+            redirect_page="kullanici_panel.html"
+        else:
+            redirect_page="index.html"        
+
+        return jsonify({"success": True, "rol": rol, "isim":user.isim, "redirect": redirect_page}),200
     else:
         return jsonify({"success": False, "hata": "Kullanıcı adı veya parola hatalı"}), 401
     
@@ -105,21 +112,42 @@ def uye_ekle():
     db.session.commit()
     return jsonify({"mesaj": "Üye eklendi."})
 
-if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        print("Veritabanı tabloları oluşturuldu.")
-       
-    app.run(debug=True) 
     
 
-# @app.route('/personel_panel')
-# def personel_panel():
-#     return render_template('personel_panel.html')
+@app.route('/personel_panel')
+def personel_panel():
+    return render_template('personel_panel.html')
 
-# @app.route('/kullanici_panel')
-# def kullanici_panel():
-#     return render_template('kullanici_panel.html')
+@app.route('/kullanici_panel')
+def kullanici_panel():
+    return render_template('kullanici_panel.html')
+
+@app.route('/sifre_degistir', methods=['POST'])
+def sifre_degistir():
+    try:    
+        data= request.get_json()
+        isim=data.get('isim')
+        eski=data.get('eskiSifre')
+        yeni=data.get('yeniSifre')
+
+        if not isim or not eski or not yeni:
+           return jsonify({"hata": "tüm alanlar doldurulmalı."}),400
+
+        user=User.query.filter_by(isim=isim , parola=eski).first()
+
+        if not user:
+           return jsonify({"hata": "mevcut sifre hatalı veya kullanıcı bulunamadı "}),401
+
+        if user.parola != eski:
+           return jsonify({"hata": "Mevcut şifre yanlış!"}), 401
+    
+        user.parola=yeni
+        db.session.commit()
+        return jsonify({"mesaj":"Şifre başarıyla değiştirildi."}),200
+    
+    except Exception as e:
+        return jsonify({"hata": "Sunucu hatası", "detay": str(e)}), 500     
+
 
 
 # @app.route('/kitap', methods=['POST'])
@@ -266,5 +294,11 @@ if __name__ == "__main__":
 #     return jsonify(liste)
     
 
+if __name__ == "__main__":
+    with app.app_context():
+        db.create_all()
+        print("Veritabanı tabloları oluşturuldu.")
+       
+    app.run(debug=True) 
 
     
