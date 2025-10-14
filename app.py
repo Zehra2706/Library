@@ -10,8 +10,7 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "http://127.0.0.1:5500"}})
 
 
-pymysql.install_as_MySQLdb()
-
+pymysql.install_as_MySQLdb() 
 
 
 # MySQL bağlantı ayarları 
