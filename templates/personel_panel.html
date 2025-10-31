@@ -8,7 +8,7 @@
         margin: 0;
         padding: 0;
         height: 100vh;
-        background-image: url("background.png");
+        background-image: url("static/background.png");
         background-size: cover;
         background-position: center;
         display: flex;
@@ -37,7 +37,7 @@
         width: 220px;
         align-self: center;
       }
-      .button:hover {
+      button:hover {
         background-color: #4caf50;
         /* color: white; */
         transform: scale(1.05);
@@ -46,12 +46,14 @@
   </head>
   <body>
     <h1 id="hosgeldin">Personel Paneline Hoşgeldin</h1>
-    <button>Kitapları Görüntüle</button>
+    <button>Kitapları Gör</button>
     <button>Kitap Ekle</button>
     <button>Kategori Ekle</button>
-    <button>Ödünç</button>
+    <button>Ödünçler</button>
+    <button>Bekleyen Ödünç Talepleri</button>
+    <button>İade Al</button>
 
-    <a href="index.html">Ana sayfaya dön</a>
+    <a href="/">Ana sayfaya dön</a>
 
     <script>
       const isim = localStorage.getItem("isim");
@@ -63,6 +65,25 @@
         document.getElementById("hosgeldin").textContent =
           "Personel Paneline Hoşgeldin";
       }
+      document.querySelectorAll("button")[0].addEventListener("click", () => {
+        window.location.href = "kitaplar";
+      });
+
+      document.querySelectorAll("button")[1].addEventListener("click", () => {
+        window.location.href = "kitap_ekle_form";
+      });
+
+      document.querySelectorAll("button")[4].addEventListener("click", () => {
+        window.location.href = "bekleyen_oduncler";
+      });
+
+      document.querySelectorAll("button")[3].addEventListener("click", () => {
+        window.location.href = "tum_oduncler";
+      });
+
+      document.querySelectorAll("button")[5].addEventListener("click", () => {
+        window.location.href = "tum_oduncler";
+      });
     </script>
   </body>
 </html>

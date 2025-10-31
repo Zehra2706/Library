@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kitap Listesi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+      body {
+        font-family: "Inter", sans-serif;
+        background-position: center;
+        background-image: url("static/background.png");
+        background-size: cover;
+        background-attachment: fixed;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0;
+      }
+
+      .glass-container {
+        background-color: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      }
+
+      .kitap-resmi {
+        height: 200px; /* Sabit yükseklik */
+        width: 100%;
+        object-fit: cover; /* Resmi kutuya sığdırırken bozulmamasını sağlar */
+      }
+
+      a {
+        display: block;
+        margin-top: 10px;
+        color: wheat;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+    </style>
+  </head>
+
+  <body class="text-gray-900">
+    <header class="text-center mb-8 mt-4">
+      <h1
+        class="text-5xl font-extrabold text-white tracking-tight shadow-lg p-2 rounded-lg bg-black bg-opacity-30"
+      >
+        Kitap Listesi
+      </h1>
+      <p class="text-x1 text-gray-300 mt-2">Aradığınız tüm kitaplar burada</p>
+    </header>
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50">
+      {% for category, message in messages %}
+      <div
+        class="bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg mb-3 animate-bounce"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <div class="w-full max-w-4xl px-4 mb-6">
+      <input
+        type="text"
+        id="aramaInput"
+        oninput="filterBooks()"
+        placeholder="Kitap başlığı veya yazar adı ile arama yapın..."
+        class="w-full p-4 text-lg border border-gray-300 rounded-xl shadow-lg focus:ring-indigo-500 focus:border-indigo-500 transition duration-300"
+      />
+    </div>
+
+    <main
+      id="kitaplarAlani"
+      class="w-full max-w-6xl h-[70vh] glass-container rounded-3x1 p-6 md:p-8 overflow-y-auto"
+    >
+      <div
+        id="kitaplarGridi"
+        class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"
+      ></div>
+      <div
+        id="bosMesaj"
+        class="hidden text-center text-white text-2xl font-semibold mt-10"
+      >
+        Aradığınız kritere uygun kitap bulunamadı.
+      </div>
+    </main>
+    {% if session['rol'] == 'kullanıcı' %}
+    <a href="kullanici_panel">Geri Dön</a>
+    {% endif %} {% if session['rol'] == 'personel' %}
+    <a href="personel_panel">Geri Dön</a>
+    {% endif %}
+    <script>
+      // const MOCK_KITAPLAR = [
+      //   {
+      //     id: 1,
+      //     baslik: "Yüzyıllık Yalnızlık",
+      //     yazar: "Gabriel García Márquez",
+      //     imageUrl:
+      //       "https://img.kitapyurdu.com/v1/getImage/fn:11846628/wh:true/wi:800",
+      //   },
+      //   {
+      //     id: 2,
+      //     baslik: "Kürk Mantolu Madonna",
+      //     yazar: "Sabahattin Ali",
+      //     imageUrl:
+      //       "https://img.kitapyurdu.com/v1/getImage/fn:1207631/wh:true/miw:200/mih:200",
+      //   },
+      //   {
+      //     id: 3,
+      //     baslik: "Uğultulu Tepeler",
+      //     yazar: "Emily Brontë",
+      //     imageUrl:
+      //       "https://i.dr.com.tr/cache/600x600-0/originals/0000000526615-1.jpg",
+      //   },
+      //   {
+      //     id: 4,
+      //     baslik: "Savaş ve Barış",
+      //     yazar: "Leo Tolstoy",
+      //     imageUrl:
+      //       "https://img.kitapyurdu.com/v1/getImage/fn:11473069/wh:true/wi:800",
+      //   },
+      //   {
+      //     id: 5,
+      //     baslik: "Küçük Prens",
+      //     yazar: "Antoine de Saint-Exupéry",
+      //     imageUrl:
+      //       "https://upload.wikimedia.org/wikipedia/tr/f/f5/Kucukprens.jpg",
+      //   },
+      //   {
+      //     id: 6,
+      //     baslik: "1984",
+      //     yazar: "George Orwell",
+      //     imageUrl:
+      //       "https://i.dr.com.tr/cache/500x400-0/originals/0000000064038-1.jpg",
+      //   },
+      //   {
+      //     id: 7,
+      //     baslik: "Simyacı",
+      //     yazar: "Paulo Coelho",
+      //     imageUrl:
+      //       "https://img.kitapyurdu.com/v1/getImage/fn:11819904/wh:true/wi:800",
+      //   },
+      //   {
+      //     id: 8,
+      //     baslik: "Puslu Kıtalar Atlası",
+      //     yazar: "İhsan Oktay Anar",
+      //     imageUrl:
+      //       "https://img.kitapyurdu.com/v1/getImage/fn:11422412/wh:true/wi:800",
+      //   },
+      //   {
+      //     id: 9,
+      //     baslik: "Tutunamayanlar",
+      //     yazar: "Oğuz Atay",
+      //     imageUrl:
+      //       "https://img.kitapyurdu.com/v1/getImage/fn:11462655/wh:true/wi:800",
+      //   },
+      // ];
+
+      const kitaplarGridi = document.getElementById("kitaplarGridi");
+      const bosMesaj = document.getElementById("bosMesaj");
+
+      function createBookCard(kitap) {
+        const card = document.createElement("a");
+
+        card.href = "javascript:void(0);";
+        card.onclick = () => handleBookClick(kitap);
+
+        card.className =
+          "kitap group bg-white bg-opacity-95 hover:bg-opacity-100 rounded-xl overflow-hidden shadow-xl hover:shadow-2xl transition duration-300 transform hover:-translate-y-1 block cursor-pointer";
+
+        card.innerHTML = `
+              <img
+                 src="${
+                   kitap.image_url ||
+                   "https://placehold.co/200x260/94a3b8/0f172a?text=Resim+Yok"
+                 }"
+                 alt="${kitap.baslik}"
+                 onerror="this.onerror=null;this.src='https://placehold.co/200x260/94a3b8/0f172a?text=Resim+Yok';"
+                 class = "kitap-resmi"
+              >
+              <div class="p-3 text-center" >
+                   <h3 class="text-lg font-bold text-gray-800 truncate group-hover:text-indigo-600 transition">${
+                     kitap.baslik
+                   }</h3>
+                   <p class="text-sm text-gray-500 mt-1">${kitap.yazar}</p>
+              </div>
+          `;
+        return card;
+      }
+      const GERCEK_KITAPLAR = JSON.parse(`{{ kitaplar_data | tojson | safe }}`);
+      console.log("Gelen Kitaplar:", GERCEK_KITAPLAR);
+
+      function filterBooks() {
+        const query = document
+          .getElementById("aramaInput")
+          .value.toLowerCase()
+          .trim();
+        kitaplarGridi.innerHTML = "";
+
+        const filteredBooks = GERCEK_KITAPLAR.filter((kitap) => {
+          const titleMatch = kitap.baslik.toLowerCase().includes(query);
+          const authorMatch = kitap.yazar.toLowerCase().includes(query);
+          return titleMatch || authorMatch;
+        });
+
+        if (filteredBooks.length > 0) {
+          filteredBooks.forEach((kitap) => {
+            kitaplarGridi.appendChild(createBookCard(kitap));
+          });
+          bosMesaj.classList.add("hidden");
+        } else {
+          bosMesaj.classList.remove("hidden");
+        }
+      }
+
+      function handleBookClick(kitap) {
+        console.log(
+          `Kitap Detay Sayfasına Yöndendiriliyor: ${kitap.baslik} (ID: ${kitap.id})`
+        );
+        window.location.href = `/kitap/${kitap.id}`;
+
+        const messageBox = document.getElementById("messageBox");
+        const messageText = document.getElementById("messageText");
+
+        messageText.textContent = `${kitap.baslik} adlı kitabın detayına gitmek üzeresiniz. (ID: ${kitap.id})`;
+        messageBox.classList.remove("hidden");
+
+        setTimeout(() => {
+          messageBox.classList.add("hidden");
+        }, 3000);
+      }
+
+      window.onload = filterBooks;
+
+      setTimeout(() => {
+        const flash = document.getElementById("flash-message");
+        if (flash) {
+          flash.style.transition = "opacity 0.5s ease";
+          flash.style.opacity = 0;
+          setTimeout(() => flash.remove(), 500);
+        }
+      }, 3000);
+    </script>
+    <div
+      id="messageBox"
+      class="hidden fixed bottom-5 right-5 bg-indigo-600 text-white p-4 rounded-lg shadow-xl z-50 transition duration-300"
+    >
+      <span id="messageText" class="font-medium"></span>
+    </div>
+  </body>
+</html>

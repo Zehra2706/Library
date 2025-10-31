@@ -7,7 +7,7 @@
         margin: 0;
         padding: 0;
         height: 100vh;
-        background-image: url("background.png");
+        background-image: url("static/background.png");
         background-size: cover;
         background-position: center;
         display: flex;
@@ -46,6 +46,7 @@
     <h1 id="hosgeldin">Kullanıcı Paneline Hoşgeldin</h1>
     <button>Kitapları Gör</button>
     <button>Ödünç Al</button>
+    <button>Kitaplarım</button>
     <button>Cezalar</button>
     <button id="sifreDegistirBtn">Şifre Değiştir</button>
     <a href="/">Ana sayfaya dön</a>
@@ -63,15 +64,19 @@
       document
         .getElementById("sifreDegistirBtn")
         .addEventListener("click", () => {
-          window.location.href = "sifre_degistir.html";
+          window.location.href = "şifre_panel";
         });
 
       document.querySelectorAll("button")[0].addEventListener("click", () => {
-        window.location.href = "kitaplar.html";
+        window.location.href = "kitaplar";
       });
 
       document.querySelectorAll("button")[1].addEventListener("click", () => {
-        window.location.href = "kitaplar.html";
+        window.location.href = "kitaplar";
+      });
+
+      document.querySelectorAll("button")[2].addEventListener("click", () => {
+        window.location.href = "odunclerim";
       });
     </script>
   </body>

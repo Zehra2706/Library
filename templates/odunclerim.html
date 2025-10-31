@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kitaplarım</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width , initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("static/background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h1 {
+        color: #987654;
+        margin-bottom: 50px;
+        font-size: 45px;
+      }
+
+      .button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      .button:hover {
+        background-color: #4caf50;
+        /* color: white; */
+        transform: scale(1.05);
+      }
+      a {
+        display: block;
+        margin-top: 10px;
+        color: wheat;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 p-6">
+    <h1 class="text-2xl font-bold mb-4">Ödünç Aldığım Kitaplar</h1>
+    <table class="w-full border border-gray-300 bg-white shadow-md rounded-lg">
+      <thead class="bg-gray-200">
+        <tr>
+          <th class="p-2 text-left">Kitap</th>
+          <th class="p-2 text-left">Alış Tarihi</th>
+          <th class="p-2 text-left">İade Tarihi</th>
+          <th class="p-2 text-left">Durum</th>
+          <th class="p-2 text-left">Gecikme (gün)</th>
+          <th class="p-2 text-left">Ceza (₺)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in oduncler %}
+        <tr class="border-t">
+          <td class="p-2">{{ o.kitap }}</td>
+          <td class="p-2">{{ o.alis_tarihi }}</td>
+          <td class="p-2">{{ o.iade_tarihi }}</td>
+          <td>
+            {% if o.durum == 'beklemede' %}
+            <span class="text-yellow-600 font-semibold">Beklemede</span>
+            {% elif o.durum == 'onaylandı' %}
+            <span class="text-green-600 font-semibold">Onaylandı</span>
+            {% elif o.durum == 'reddedildi' %}
+            <span class="text-red-600 font-semibold">Reddedildi</span>
+            {% elif o.durum == 'iade_edildi' %}
+            <span class="text-blue-600 font-semibold">İade Edildi</span>
+            {% endif %}
+          </td>
+          <td class="p-2">{{ o.gecikme_gun }}</td>
+          <td class="p-2 {% if o.ceza > 0 %}text-red-500 font-bold{% endif %}">
+            {{ o.ceza }}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p class="text-x1 text-gray-300 mt-2">
+      Kitabı almak için bu sayfayı personele gösteriniz.
+    </p>
+
+    <a href="kullanici_panel">Geri Dön</a>
+
+    <script>
+      setTimeout(() => {
+        const flash = document.getElementById("flash-message");
+        if (flash) {
+          flash.style.transition = "opacity 0.5s ease";
+          flash.style.opacity = 0;
+          setTimeout(() => flash.remove(), 500);
+        }
+      }, 3000);
+    </script>
+  </body>
+</html>

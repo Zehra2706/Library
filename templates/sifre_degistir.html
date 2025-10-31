@@ -9,7 +9,7 @@
         margin: 0;
         padding: 0;
         height: 100vh;
-        background-image: url("background.png");
+        background-image: url("static/background.png");
         background-size: cover;
         background-position: center;
         display: flex;
@@ -99,7 +99,7 @@
         <button type="submit">Kaydet</button>
       </form>
       <div id="mesaj"></div>
-      <a href="kullanici_panel.html">Geri Dön</a>
+      <a href="kullanici_panel">Geri Dön</a>
     </div>
   </body>
   <script>
@@ -144,7 +144,7 @@
             mesajDiv.textContent = result.mesaj;
             mesajDiv.className = "success";
             setTimeout(() => {
-              window.location.href = "kullanici_panel.html";
+              window.location.href = "kullanici_panel";
             }, 2000);
           } else {
             mesajDiv.textContent = result.hata;
