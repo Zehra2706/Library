@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Bekleyen Ödünçler</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width , initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("static/background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h1 {
+        color: #987654;
+        margin-bottom: 50px;
+        font-size: 45px;
+      }
+
+      .button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      .button:hover {
+        background-color: #4caf50;
+        /* color: white; */
+        transform: scale(1.05);
+      }
+      a {
+        display: block;
+        margin-top: 10px;
+        color: wheat;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+    </style>
+  </head>
+  <body class="p-10 bg-gray-100">
+    <h1 class="text-2xl font-bold mb-4">Bekleyen Ödünç Talepleri</h1>
+    {% if oduncler %}
+    <table class="table-auto w-full bg-white rounded shadow">
+      <thead>
+        <tr class="bg-gray-200 text-left">
+          <th class="p-2">Kullanıcı</th>
+          <th class="p-2">Kitap</th>
+          <th class="p-2">Tarih</th>
+          <th class="p-2">İşlem</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for o in oduncler %}
+        <tr>
+          <td class="p-2">{{ o.kullanici }}</td>
+          <td class="p-2">{{ o.kitap }}</td>
+          <td class="p-2">{{ o.tarih }}</td>
+          <td class="p-2">
+            <form
+              method="POST"
+              action="/odunc_onayla/{{ o.id }}"
+              class="inline"
+            >
+              <button class="bg-green-500 text-white px-3 py-1 rounded">
+                Onayla
+              </button>
+            </form>
+            <form
+              method="POST"
+              action="/odunc_reddet/{{ o.id }}"
+              class="inline"
+            >
+              <button class="bg-red-500 text-white px-3 py-1 rounded">
+                Reddet
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    {% else %}
+    <p class="text-gray-600">Bekleyen ödünç isteği yok.</p>
+    {% endif %}
+    <a href="personel_panel">Geri Dön</a>
+
+    <script>
+      setTimeout(() => {
+        const flash = document.getElementById("flash-message");
+        if (flash) {
+          flash.style.transition = "opacity 0.5s ease"; //Bu öğenin görünürlüğü değişirse, 0.5 saniyede yumuşakça değiştir.”
+          flash.style.opacity = 0; //Bu satır, flash öğesinin saydamlığını 0 yapar.Yani öğe görünmez hale gelir, ama bir anda değil — bir önceki satır sayesinde yarım saniyede yavaşça kaybolur.
+          setTimeout(() => flash.remove(), 200);
+        }
+      }, 2000);
+    </script>
+  </body>
+</html>

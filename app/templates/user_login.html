@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width , initial-scale=1.0" />
+    <title>Sign Up</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("static/background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h2 {
+        color: #333;
+        margin-bottom: 15px;
+      }
+
+      .container {
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 25px 40px;
+        border-radius: 15px;
+        text-align: center;
+        width: 300px;
+      }
+
+      input {
+        width: 90%;
+        padding: 10px;
+        margin: 8px 0;
+        border: 1px solid #aaa;
+        border-radius: 8px;
+      }
+      button {
+        background-color: #987654;
+        color: white;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+
+      button:hover {
+        background-color: #4caf50;
+      }
+
+      a {
+        display: block;
+        margin-top: 10px;
+        color: #333;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Kullanıcı Girişi</h2>
+      <form id="signupForm">
+        <input type="email" name="email" placeholder="E-posta" required />
+        <input type="password" name="parola" placeholder="Parola" required />
+        <button type="submit">Giriş Yap</button>
+      </form>
+      <a href="login_page">Geri Dön</a>
+    </div>
+
+    <script>
+      document //signupForm formuna bir olay dinleyici (event listener) ekleniyor.Kullanıcı formu gönderince bu fonksiyon çalışır.
+        .getElementById("signupForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault(); //e.preventDefault() → formun sayfayı yenilemesini engeller.(yani sayfa yenilenmeden veri arka planda gönderilir)
+          const data = {
+            isim: e.target.isim.value,
+            email: e.target.email.value,
+            parola: e.target.parola.value,
+            rol: e.target.rol.value,
+          }; //Formdaki alanlardan veri alınır ve bir JSON nesnesi (data) oluşturulur.Burada "isim" ve "rol" aslında formda yok, bu yüzden hata verebilir — formda sadece email ve parola var
+
+          const response = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          }); //Flask sunucusundaki /login adresine POST isteği gönderilir.Gönderilen veri JSON formatında olur (body: JSON.stringify(data)).
+
+          const result = await response.json(); //await, JavaScript’te asenkron işlemleri (yani zamana bağlı işlemleri) beklemek için kullanılır.result değişkeni daha veri gelmeden çalışır ve Promise (henüz tamamlanmamış bir söz) döner.Yani elinde gerçek veri olmaz, sadece "gelecekte gelecek" bir söz vardır. Await "Burada bekle, response.json() işlemi tamamen bitene kadar devam etme."
+          //const result = await response.json(); → “Sunucudan veriyi al, JSON’a dönüştür ve bitene kadar bekle” demektir.
+          if (response.ok) {
+            alert(`Giriş başarılı! Rol: ${result.rol}`);
+            // Kullanıcı rolüne göre yönlendir
+            if (result.rol === "personel") {
+              window.location.href = "/personel_panel.html";
+            } else {
+              window.location.href = "/kullanici_panel.html";
+            }
+          } else {
+            alert(result.hata);
+          }
+        });
+    </script>
+  </body>
+</html>

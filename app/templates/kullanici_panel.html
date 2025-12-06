@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kullanıcı Paneli</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("static/background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h1 {
+        color: #987654;
+        margin-bottom: 80px;
+        font-size: 45px;
+      }
+      button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      button:hover {
+        background-color: #4caf50;
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="hosgeldin">Kullanıcı Paneline Hoşgeldin</h1>
+    <button>Kitapları Gör</button>
+    <button>Ödünç Al</button>
+    <button>Kitaplarım</button>
+    <button>Cezalar</button>
+    <button id="sifreDegistirBtn">Şifre Değiştir</button>
+    <a href="/">Ana sayfaya dön</a>
+    <script>
+      const isim = localStorage.getItem("isim"); //ismi aldı.
+      if (isim) {
+        document.getElementById(
+          "hosgeldin"
+        ).textContent = `Kullanıcı Paneline Hoşgeldin ${isim}`; //ismi alır.
+      } else {
+        document.getElementById("hosgeldin").textContent =
+          "Kullanıcı Paneline Hoşgeldin";
+      }
+
+      document
+        .getElementById("sifreDegistirBtn")
+        .addEventListener("click", () => {
+          window.location.href = "şifre_panel";
+        }); //tıklandıgında sifre paneline geç.
+
+      document.querySelectorAll("button")[0].addEventListener("click", () => {
+        window.location.href = "kitaplar";
+      });
+
+      document.querySelectorAll("button")[1].addEventListener("click", () => {
+        window.location.href = "kitaplar";
+      });
+
+      document.querySelectorAll("button")[2].addEventListener("click", () => {
+        window.location.href = "odunclerim";
+      });
+
+      document.querySelectorAll("button")[3].addEventListener("click", () => {
+        window.location.href = "late_borrows";
+      });
+    </script>
+  </body>
+</html>

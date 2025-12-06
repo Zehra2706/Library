@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ kitap.baslik }} - Kitap Detay</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
+
+      body {
+        font-family: "Inter", sans-serif;
+        background-position: center;
+        background-image: url("{{ url_for('static', filename='background.png') }}");
+        background-size: cover;
+        background-attachment: fixed;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .card {
+        background-color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(5px);
+        padding: 20px;
+        border-radius: 15px;
+        max-width: 500px;
+        width: 100%;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+
+      .kitap-img {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+        border-radius: 10px;
+        margin-bottom: 20px;
+      }
+
+      .btn {
+        background-color: #987654;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 15px;
+        display: inline-block;
+      }
+
+      .btn:hover {
+        background-color: #4caf50;
+      }
+    </style>
+  </head>
+
+  <body class="text-gray-900">
+    <div class="card">
+      <img
+        src="{{ kitap.image_url }}"
+        alt="{{ kitap.baslik }}"
+        class="kitap-img"
+        onerror="this.src='https://placehold.co/400x300/94a3b8/0f172a?text=Resim+Yok'"
+      />
+      <h2 class="text-2xl font-bold mb-2">{{ kitap.baslik }}</h2>
+
+      <p><strong>Yazar:</strong>{{ kitap.yazar }}</p>
+      <p><strong>Kategori:</strong>{{ kitap.kategori }}</p>
+      <p><strong>Açıklama:</strong>{{ kitap.detay }}</p>
+      <p><strong>Mevcut Adet:</strong>{{ kitap.mevcut }}</p>
+      <a href="/kitaplar" class="btn">Geri Dön</a>
+
+      {% if session['rol'] == 'personel' %}
+      <form
+        method="POST"
+        <form action="{{ url_for('book_bp.kitap_sil_html', kitap_id=kitap.id) }}" method="GET" 
+         onsubmit="return confirm('Bu kitabı silmek istediğinizden emin misiniz?');">
+         <a href="{{ url_for('book_bp.kitap_sil_html', kitap_id=kitap.id) }}" class="btn btn-danger">Kitabı Sil</a>
+        </form>      
+      </form>
+      {% endif %} {% if session['rol'] == 'kullanıcı' %}
+      <form method="POST" action="/odunc">
+        <input type="hidden" name="book_id" value="{{ kitap.id }}" />
+        <input
+          type="hidden"
+          name="user_id"
+          value="{{ session.get('user_id', 1) }}"
+        />
+        <button type="submit" class="btn">Kitabı Ödünç Al</button>
+      </form>
+      {% endif %}
+    </div>
+    <script>
+      function handleBookClick(kitap) {
+        window.location.href = `/kitap/${kitap.id}`;
+      } //  kitaplara gelince burayı gösteriyor
+
+      setTimeout(() => {
+        const flash = document.getElementById("flash-message");
+        if (flash) {
+          flash.style.transition = "opacity 0.5s ease";
+          flash.style.opacity = 0;
+          setTimeout(() => flash.remove(), 200);
+        } //Bu, başarı veya hata mesajları varsa 2 saniye sonra ekrandan kaybolmalarını sağlar.
+      }, 2000);
+    </script>
+  </body>
+</html>
