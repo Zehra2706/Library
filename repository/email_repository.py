@@ -7,3 +7,8 @@ from core.database import db
 def add(email):
         db.session.add(email)
         db.session.commit()
+
+@staticmethod
+def get_by_id(user_id):
+        return EmailQueue.query.get(user_id)
+

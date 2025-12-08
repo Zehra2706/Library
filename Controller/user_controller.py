@@ -99,7 +99,51 @@ def sifre_degistir():
     except Exception as e:
         return jsonify({"hata": "Sunucu hatası", "detay": str(e)}), 500
 
+@user_bp.route('/api/search_users')
+def search_users():
+    query = request.args.get('query', '').lower()
+    all_users = get_all_users() # İş Katmanı çağrısı
+    filtered_users = []
+
+    for u in all_users:
+        if query in (u.get("isim") or "").lower():
+            filtered_users.append({
+                "id": u.get("id"),
+                "isim": u.get("isim"),
+                "email": u.get("email"),
+                "rol": u.get("rol"),
+                "giris_tarihi": u.get("giris_tarihi").strftime("%Y-%m-%d %H:%M") if u.get("giris_tarihi") else "-"
+            })
+
+    return jsonify(filtered_users)
+
 @user_bp.route('/api/get_users', methods=['GET'])
 def get_users_simple():
     liste = get_all_users() # İş Katmanı çağrısı
     return jsonify(liste)
+
+@user_bp.route('/kullanicilar')
+def kullanicilar():
+    if session.get('rol') != 'personel':
+        flash("Bu sayfayı sadece personel görebilir!", "danger")
+        return redirect(url_for('user_bp.index'))
+
+    liste = get_all_users() # İş Katmanı çağrısı
+    return render_template("kullanicilar.html", kullanicilar=liste)
+
+@user_bp.route('/delete_user/<int:user_id>', methods=['POST'])
+def delete_user(user_id):
+    if session.get('rol') != 'personel':
+        flash("Bu işlemi yapmaya yetkiniz yok!", "danger")
+        return redirect(url_for('user_bp.index'))
+
+    from repository import user_repository
+    user = user_repository.get_by_id(user_id)
+    if not user:
+        flash("Kullanıcı bulunamadı!", "danger")
+        return redirect(url_for('user_bp.kullanicilar'))
+
+    user_repository.delete(user)
+    flash("Kullanıcı başarıyla silindi.", "success")
+    return redirect(url_for('user_bp.kullanicilar'))
+

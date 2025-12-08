@@ -1,5 +1,6 @@
 from entity.user_entity import User
 from core.database import db
+from entity.email_entity import EmailQueue
 
 # class UserRepository:
 
@@ -23,6 +24,12 @@ def add(user):
 @staticmethod
 def update():
         db.session.commit()
+
+@staticmethod
+def delete(user):
+        EmailQueue.query.filter_by(user_id=user.id).delete()
+        db.session.delete(user)
+        db.session.commit()        
 
 @staticmethod
 def get_all():

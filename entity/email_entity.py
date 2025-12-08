@@ -11,3 +11,4 @@ class EmailQueue(db.Model):
     body = db.Column(db.Text, nullable=False)
     sent = db.Column(db.Boolean, default=False)
     create_at = db.Column(db.DateTime, default=datetime.utcnow)
+    recipient_email = db.Column(db.String(120), nullable=True) # E-posta adresini tutacak sütun

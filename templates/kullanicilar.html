@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Kullanıcılar</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width , initial-scale=1.0" />
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        background-image: url("static/background.png");
+        background-size: cover;
+        background-position: center;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        justify-content: center;
+        align-items: center;
+        font-family: "Poppins", sans-serif;
+      }
+
+      h1 {
+        color: #987654;
+        margin-bottom: 50px;
+        font-size: 45px;
+      }
+
+      .button {
+        background-color: #987654;
+        color: #333;
+        border: none;
+        padding: 10px 30px;
+        font-size: 20px;
+        font-weight: bold;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        width: 220px;
+        align-self: center;
+      }
+      .button:hover {
+        background-color: #4caf50;
+        /* color: white; */
+        transform: scale(1.05);
+      }
+      a {
+        display: block;
+        margin-top: 10px;
+        color: wheat;
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: #4caf50;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-100 p-6">
+    <div class="max-w-6xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
+      <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">
+        Kullanıcılar
+      </h1>
+      <!-- {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        class="p-3 mb-3 rounded-lg text-white {% if category == 'success' %}bg-green-500 {% elif category == 'warning' %}bg-yellow-500 {% elif category == 'danger' %}bg-red-500 {% else %}bg-blue-500{% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %} -->
+
+      <input
+        id="searchInput"
+        type="text"
+        placeholder="Kullanıcı adı ara..."
+        class="w-full border px-4 py-2 rounded-lg mb-4"
+        onkeyup="search_users()"
+      />
+
+      <table class="w-full border border-gray-300 rounded-lg overflow-hidden">
+        <thead class="bg-blue-100">
+          <tr>
+            <th class="px-4 py-2 text-left">Kullanıcı</th>
+            <th class="px-4 py-2 text-left">Email</th>
+            <th class="px-4 py-2 text-left">Rol</th>
+            <th class="px-4 py-2 text-left">Giriş Tarihi</th>
+            <th class="px-4 py-2 text-left">İşlem</th>
+          </tr>
+        </thead>
+        <tbody id="userTable">
+          {% for kullanici in kullanicilar %}
+          <tr class="border-t hover:bg-gray-50">
+            <td class="px-4 py-2">
+              {{ kullanici.isim if kullanici.isim else 'Bilinmiyor' }}
+            </td>
+            <td class="px-4 py-2">{{ kullanici.email }}</td>
+            <td class="px-4 py-2">{{ kullanici.rol }}</td>
+            <td class="px-4 py-2">{{ kullanici.giris_tarihi }}</td>
+            <td class="px-4 py-2">
+              <form
+                method="POST"
+                action="/delete_user/{{ kullanici.id }}"
+                onsubmit="return confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?');"
+              >
+                <button
+                  type="submit"
+                  class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition"
+                >
+                  Sil
+                </button>
+              </form>
+            </td>
+          </tr>
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <a href="personel_panel">Geri Dön</a>
+
+    <script>
+      function search_users() {
+        let q = document.getElementById("searchInput").value;
+        fetch(`/api/search_users?query=${q}`)
+          .then((response) => response.json())
+          .then((data) => {
+            let userTable = document.getElementById("userTable");
+            userTable.innerHTML = "";
+            data.forEach((user) => {
+              const row = document.createElement("tr");
+              row.classList.add("border-t", "hover:bg-gray-50");
+              row.innerHTML = `
+                          <td class="px-4 py-2">${
+                            user.isim || "Bilinmiyor"
+                          }</td>
+                          <td class="px-4 py-2">${user.email}</td>
+                          <td class="px-4 py-2">${user.rol}</td>
+                          <td class="px-4 py-2">${user.giris_tarihi}</td>
+                          <td class="px-4 py-2">
+                              <form method="POST" action="/delete_user/${
+                                user.id
+                              }" onsubmit="return confirm('Bu kullanıcıyı silmek istediğinize emin misiniz?');">
+                                  <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600 transition">Sil</button>
+                              </form>
+                          </td>
+                      `;
+              userTable.appendChild(row);
+            });
+          });
+      }
+
+      function deleteUser(userId) {
+        if (confirm("Bu kullanıcıyı silmek istediğinize emin misiniz?")) {
+          fetch(`/delete_user/${userId}`, {
+            method: "POST",
+          }).then((response) => {
+            if (response.ok) {
+              alert("Kullanıcı başarıyla silindi.");
+              location.reload();
+            } else {
+              alert("Kullanıcı silinirken bir hata oluştu.");
+            }
+          });
+        }
+      }
+
+      setTimeout(() => {
+        const flash = document.getElementById("flash-message");
+        if (flash) {
+          flash.style.transition = "opacity 0.5s ease";
+          flash.style.opacity = 0;
+          setTimeout(() => flash.remove(), 200);
+        }
+      }, 2000);
+    </script>
+  </body>
+</html>

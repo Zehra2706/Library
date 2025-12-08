@@ -49,6 +49,7 @@
     <button>Kitapları Gör</button>
     <button>Kitap Ekle</button>
     <button>Kategori Ekle</button>
+    <button>Kullanıcıları Gör</button>
     <button>Ödünçler</button>
     <button>Bekleyen Ödünç Talepleri</button>
     <button>İade Al</button>
@@ -77,15 +78,19 @@
         window.location.href = "kategori_ekle_form";
       });
 
-      document.querySelectorAll("button")[4].addEventListener("click", () => {
-        window.location.href = "bekleyen_oduncler";
-      });
-
       document.querySelectorAll("button")[3].addEventListener("click", () => {
-        window.location.href = "tum_oduncler?mode=liste";
+        window.location.href = "kullanicilar";
       });
 
       document.querySelectorAll("button")[5].addEventListener("click", () => {
+        window.location.href = "bekleyen_oduncler";
+      });
+
+      document.querySelectorAll("button")[4].addEventListener("click", () => {
+        window.location.href = "tum_oduncler?mode=liste";
+      });
+
+      document.querySelectorAll("button")[6].addEventListener("click", () => {
         window.location.href = "tum_oduncler?mode=iade";
       });
     </script>
