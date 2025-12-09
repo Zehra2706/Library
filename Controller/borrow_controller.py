@@ -123,3 +123,4 @@ def iade_al(odunc_id):
     #liste = get_all_borrows()
     #  return render_template("iade_al.html", oduncler=liste)
     return redirect(url_for('borrow_bp.tum_oduncler' , mode='iade'))
+

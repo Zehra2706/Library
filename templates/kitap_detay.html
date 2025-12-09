@@ -76,10 +76,12 @@
       {% if session['rol'] == 'personel' %}
       <form
         method="POST"
-        <form action="{{ url_for('book_bp.kitap_sil_html', kitap_id=kitap.id) }}" method="GET" 
-         onsubmit="return confirm('Bu kitabı silmek istediğinizden emin misiniz?');">
-         <a href="{{ url_for('book_bp.kitap_sil_html', kitap_id=kitap.id) }}" class="btn btn-danger">Kitabı Sil</a>
-        </form>      
+        <form
+        action="{{ url_for('book_bp.kitap_sil_html', kitap_id=kitap.id) }}"
+        method="POST"
+        onsubmit="return confirm('Bu kitabı silmek istediğinizden emin misiniz?');"
+      >
+        <button type="submit" class="btn btn-danger">Kitabı Sil</button>
       </form>
       {% endif %} {% if session['rol'] == 'kullanıcı' %}
       <form method="POST" action="/odunc">

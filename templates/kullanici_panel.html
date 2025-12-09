@@ -44,44 +44,46 @@
   </head>
   <body>
     <h1 id="hosgeldin">Kullanıcı Paneline Hoşgeldin</h1>
-    <button>Kitapları Gör</button>
-    <button>Ödünç Al</button>
-    <button>Kitaplarım</button>
-    <button>Cezalar</button>
+
+    <button id="btnKitaplar">Kitaplar/Ödünç</button>
+    <button id="btnCezaOde">Ceza Öde</button>
+    <button id="btnOdunclerim">Kitaplarım</button>
+    <button id="btnCezalar">Cezalar</button>
     <button id="sifreDegistirBtn">Şifre Değiştir</button>
+
     <a href="/">Ana sayfaya dön</a>
     <script>
-      const isim = localStorage.getItem("isim"); //ismi aldı.
-      if (isim) {
-        document.getElementById(
-          "hosgeldin"
-        ).textContent = `Kullanıcı Paneline Hoşgeldin ${isim}`; //ismi alır.
-      } else {
-        document.getElementById("hosgeldin").textContent =
-          "Kullanıcı Paneline Hoşgeldin";
-      }
+      const isim = localStorage.getItem("isim");
 
-      document
-        .getElementById("sifreDegistirBtn")
-        .addEventListener("click", () => {
-          window.location.href = "şifre_panel";
-        }); //tıklandıgında sifre paneline geç.
+      document.getElementById("hosgeldin").textContent = isim
+        ? `Kullanıcı Paneline Hoşgeldin ${isim}`
+        : "Kullanıcı Paneline Hoşgeldin";
 
-      document.querySelectorAll("button")[0].addEventListener("click", () => {
-        window.location.href = "kitaplar";
-      });
+      document.getElementById("sifreDegistirBtn").onclick = () => {
+        window.location.href = "/şifre_panel";
+      };
 
-      document.querySelectorAll("button")[1].addEventListener("click", () => {
-        window.location.href = "kitaplar";
-      });
+      document.getElementById("btnKitaplar").onclick = () => {
+        window.location.href = "/kitaplar";
+      };
 
-      document.querySelectorAll("button")[2].addEventListener("click", () => {
-        window.location.href = "odunclerim";
-      });
+      document.getElementById("btnOdunclerim").onclick = () => {
+        window.location.href = "/odunclerim";
+      };
 
-      document.querySelectorAll("button")[3].addEventListener("click", () => {
-        window.location.href = "late_borrows";
-      });
+      document.getElementById("btnCezalar").onclick = () => {
+        window.location.href = "/late_borrows";
+      };
+
+      fetch("/get_user_id")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.user_id) {
+            document.getElementById("btnCezaOde").onclick = () => {
+              window.location.href = "/ceza_ode/" + data.user_id;
+            };
+          }
+        });
     </script>
   </body>
 </html>

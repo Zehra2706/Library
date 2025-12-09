@@ -1,8 +1,7 @@
 import os
-from flask import Flask
+from flask import Flask, jsonify, session
 from flask_cors import CORS
 from flask_migrate import Migrate
-# from routes import main
 from send_emails import send_email
 from config import Config
 from entity.user_entity import User
@@ -12,7 +11,6 @@ from core.database import db
 import threading
 import time
 import pymysql
-
 
 # Kendi modüllerimizi import ediyoruz
 
@@ -30,19 +28,33 @@ def create_app(config_class=Config):
     from Controller.user_controller import user_bp
     from Controller.book_controller import book_bp
     from Controller.borrow_controller import borrow_bp
+    from Controller.pay_controller import pay_bp
 
 
     app.register_blueprint(user_bp)
     app.register_blueprint(book_bp)
     app.register_blueprint(borrow_bp)
+    app.register_blueprint(pay_bp)
 
     return app
+
+
 
 def background_email_worker(app, db, EmailQueue, User):
     while True:
         with app.app_context():
             send_email(app, db, EmailQueue, User)
         time.sleep(10)  # her 10 saniyede bir mail kuyruğunu kontrol eder
+
+# @app.route("/get_user_id")
+# def get_user_id():
+#     user_id = session.get("user_id")
+
+#     if not user_id:
+#         return jsonify({"error": "not logged in"}), 401
+
+#     return jsonify({"user_id": user_id})
+
 
 
 if __name__ == "__main__":

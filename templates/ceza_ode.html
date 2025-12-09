@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ceza Öde</title>
+    <style>
+      body {
+        font-family: Arial;
+        background: #f0f0f0;
+        padding: 20px;
+      }
+      .container {
+        width: 400px;
+        margin: auto;
+        background: #fff;
+        padding: 20px;
+        border-radius: 10px;
+      }
+      .amount {
+        font-size: 22px;
+        font-weight: bold;
+        color: #c0392b;
+        margin-bottom: 15px;
+      }
+      input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 5px;
+      }
+      button {
+        width: 100%;
+        padding: 10px;
+        margin-top: 15px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        font-size: 16px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div
+        style="
+          background: #ffdddd;
+          padding: 10px;
+          border-left: 4px solid red;
+          margin-bottom: 10px;
+        "
+      >
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %} {% endwith %} {% if total_ceza > 0 %}
+
+      <div class="amount">Toplam Ödenecek Ceza: {{ total_ceza }} TL</div>
+
+      <form
+        action="{{ url_for('pay_bp.ceza_ode', user_id=user_id) }}"
+        method="POST"
+      >
+        <button type="submit">Ödemeyi Başlat</button>
+      </form>
+
+      {% else %}
+      <h2>Ödenecek cezanız bulunmamaktadır.</h2>
+      {% endif %}
+
+      <a href="{{ url_for('user_bp.kullanici_panel', user_id=user_id) }}"
+        >Geri Dön</a
+      >
+    </div>
+  </body>
+</html>

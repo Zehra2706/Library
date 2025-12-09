@@ -1,4 +1,7 @@
+from datetime import datetime
 from flask import render_template, request, jsonify, redirect, url_for, flash, session, Blueprint
+from entity.borrow_entity import Borrow
+from repository import borrow_repository
 from services.user_services import (user_login, add_user, change_password ,get_all_users)
 #from services.book_services import (get_books, get_book_by_id, add_book, delete_book)
 #from services.borrow_services import ( request_borrow, get_pending_borrows, approve_borrow, reject_borrow,get_user_borrows, get_all_borrows, process_return)
@@ -112,7 +115,7 @@ def search_users():
                 "isim": u.get("isim"),
                 "email": u.get("email"),
                 "rol": u.get("rol"),
-                "giris_tarihi": u.get("giris_tarihi").strftime("%Y-%m-%d %H:%M") if u.get("giris_tarihi") else "-"
+                "giris_tarihi": u.get("giris_tarihi") if u.get("giris_tarihi") else "-"
             })
 
     return jsonify(filtered_users)
@@ -146,4 +149,20 @@ def delete_user(user_id):
     user_repository.delete(user)
     flash("Kullanıcı başarıyla silindi.", "success")
     return redirect(url_for('user_bp.kullanicilar'))
+
+@user_bp.route('/get_borrow_id')
+def get_borrow_id():
+    user_id = session.get("user_id")
+    borrow =Borrow.query.filter_by(user_id=user_id).filter(Borrow.ceza > 0).first()
+    return {"borrow_id": borrow.id if borrow else None}
+
+@user_bp.route("/get_user_id")
+def get_user_id():
+    user_id = session.get("user_id")
+    
+    if not user_id:
+        return jsonify({"error": "not logged in"}), 401
+    return jsonify({"user_id": user_id})
+
+
 
