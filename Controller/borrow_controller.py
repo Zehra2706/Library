@@ -3,6 +3,8 @@ from flask import g, render_template, request, jsonify, redirect, url_for, flash
 #from services.book_services import (get_books, get_book_by_id, add_book, delete_book)
 from auth import token_required
 from services.borrow_services import ( request_borrow, get_pending_borrows, approve_borrow, reject_borrow,get_user_borrows, get_all_borrows, process_return)
+from repository.borrow_repository import toplam_ceza
+from flask import flash, redirect, url_for
 
 
 borrow_bp = Blueprint('borrow_bp', __name__, template_folder='templates')
@@ -29,7 +31,15 @@ def odunc_al():
     except (TypeError, ValueError):
         flash("Geçersiz kullanıcı veya kitap ID", "danger")
         return redirect(url_for('borrow_bp.kitaplar'))
-        
+
+    toplam = toplam_ceza(user_id)
+    if toplam >= 100:
+        flash(
+            f"Toplam cezanız {toplam} TL olduğu için yeni kitap ödünç alamazsınız.",
+            "danger"
+        )
+        return redirect(url_for("user_bp.kullanici_panel"))
+
     success, mesaj = request_borrow(user_id, book_id) # İş Katmanı çağrısı
     
     if success:

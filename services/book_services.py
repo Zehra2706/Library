@@ -17,14 +17,14 @@ def get_books(query=None):
 def get_book_by_id(kitap_id):
     return book_repository.get_by_id(kitap_id)
 
-def add_book(baslik, yazar, kategori_id, mevcut, detay, image_url):
+def add_book(baslik, yazar_adi, kategori_id, mevcut, detay, image_url):
     try:
         kategori = category_repository.get_by_id(kategori_id)    
     except ValueError:
         return False, "Kategori geçerli olmalıdır"
     
     yeni_kitap = Book(
-        baslik=baslik, yazar=yazar, detay=detay,
+        baslik=baslik, yazar=yazar_adi, detay=detay,
         mevcut=mevcut,kategori_id=kategori_id,
         image_url=image_url
     )
@@ -42,6 +42,18 @@ def add_category(kategori_adi):
     yeni_kategori = Category(isim=kategori_adi)
     category_repository.add(yeni_kategori)
     return True, f"'{kategori_adi}' adlı kategori başarıyla eklendi"
+
+def add_yazar(yazar_adi):
+    from repository import yazar_repository
+    from entity.yazar_entity import Yazar
+    mevcut = yazar_repository.get_by_name(yazar_adi)
+
+    if mevcut :
+        return False, "Bu isimde bir yazar zaten mevcut."    
+
+    yeni_yazar = Yazar(isim=yazar_adi)
+    yazar_repository.add(yeni_yazar)
+    return True, f"'{yazar_adi}' adlı yazar başarıyla eklendi"
 
 def delete_book(kitap_id):
     kitap = book_repository.get_by_id(kitap_id)

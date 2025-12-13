@@ -28,8 +28,16 @@ def add(kategori):
 
 @staticmethod
 def delete(kategori):
+    if kategori is None:
+        return False, "Kategori bulunamadı"
+
+    try:
         db.session.delete(kategori)
         db.session.commit()
+        return True, " "
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)
 
 @staticmethod
 def update(kategori):

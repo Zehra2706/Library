@@ -49,12 +49,13 @@
     <button>Kitapları Gör</button>
     <button>Kitap Ekle</button>
     <button>Kategori Ekle</button>
+    <button>Yazar Ekle</button>
     <button>Kullanıcıları Gör</button>
     <button>Ödünçler</button>
     <button>Bekleyen Ödünç Talepleri</button>
     <button>İade Al</button>
 
-    <a href="/">Ana sayfaya dön</a>
+    <a href="/">Çıkış Yap</a>
 
     <script>
       const isim = localStorage.getItem("isim"); //ismi aldı sonra da butonlara tıklanınca sayfalara yönlendirir.
@@ -73,24 +74,25 @@
       document.querySelectorAll("button")[1].addEventListener("click", () => {
         window.location.href = "kitap_ekle_form";
       });
-
       document.querySelectorAll("button")[2].addEventListener("click", () => {
         window.location.href = "kategori_ekle_form";
       });
-
       document.querySelectorAll("button")[3].addEventListener("click", () => {
+        window.location.href = "yazar_ekle_form";
+      });
+      document.querySelectorAll("button")[4].addEventListener("click", () => {
         window.location.href = "kullanicilar";
       });
 
-      document.querySelectorAll("button")[5].addEventListener("click", () => {
+      document.querySelectorAll("button")[6].addEventListener("click", () => {
         window.location.href = "bekleyen_oduncler";
       });
 
-      document.querySelectorAll("button")[4].addEventListener("click", () => {
+      document.querySelectorAll("button")[5].addEventListener("click", () => {
         window.location.href = "tum_oduncler?mode=liste";
       });
 
-      document.querySelectorAll("button")[6].addEventListener("click", () => {
+      document.querySelectorAll("button")[7].addEventListener("click", () => {
         window.location.href = "tum_oduncler?mode=iade";
       });
     </script>

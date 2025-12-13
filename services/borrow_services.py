@@ -12,13 +12,31 @@ from repository import borrow_repository
 from repository import user_repository
 from repository import email_repository 
 
+def auto_approve_old_requests():
+    limit_time = datetime.utcnow() - timedelta(hours=24)
 
+    bekleyenler = Borrow.query.filter(
+        Borrow.durum == "beklemede",
+        Borrow.alis_tarihi <= limit_time
+    ).all()
+
+    for o in bekleyenler:
+        o.durum = "onaylandı"
+        # iade tarihi (senin sistemine göre)
+        o.iade_tarihi = o.alis_tarihi + timedelta(days=1)
+
+    if bekleyenler:
+        db.session.commit()
 
 def request_borrow(user_id, book_id):
     kitap = book_repository.get_by_id(book_id)
     if not kitap or (kitap.mevcut is None or kitap.mevcut <= 0):
         return False, "Kitap stokta yok veya bulunamadı."
 
+    aktif_kitap_sayisi = borrow_repository.count_active_borrows(user_id)
+    if aktif_kitap_sayisi >= 5:
+        return False, "Üzerinizde zaten 5 kitap var. Yeni kitap alabilmek için iade yapmalısınız."
+    
     bugun = datetime.utcnow().date()
     
     # Günlük limit kontrolü (Max 3 onaylanmış/beklemede ödünç)
@@ -39,36 +57,6 @@ def request_borrow(user_id, book_id):
     )
 
     borrow_repository.add(odunc)
-    
-    
-    
-    # bugunku_oduncler = Borrow.query.filter(
-    #     Borrow.user_id == user_id,
-    #     func.date(Borrow.alis_tarihi) == bugun,
-    #     Borrow.durum.in_(["beklemede", "onaylandı"])
-    # ).count()
-    # if bugunku_oduncler >= 3:
-    #     return False, "Aynı gün 3'ten fazla kitap ödünç alamazsınız!"
-
-    # # Aynı gün aynı kitap kontrolü
-    # ayni_gun_ayni_kitap = Borrow.query.filter(
-    #     Borrow.user_id == user_id,
-    #     Borrow.book_id == book_id,
-    #     func.date(Borrow.alis_tarihi) == bugun,
-    # ).first()
-    # if ayni_gun_ayni_kitap:
-    #     return False, "Bu kitap için bugün zaten bir istek gönderdiniz!"
-
-    # alis_tarihi = datetime.utcnow()
-    # # Not: Onay sonrası iade tarihi personel onayı sırasında atanıyor, burada sadece placeholder.
-    # # Ancak orijinal kodda burada atandığı için 1 gün olarak bırakıldı.
-    # # Daha doğru bir mimari için iade_tarihi = None bırakılıp, onay sırasında atanır.
-    # iade_tarihi = alis_tarihi + timedelta(days=1) 
-    
-    # odunc = Borrow(user_id=user_id, book_id=book_id, durum='beklemede',
-    #                alis_tarihi=alis_tarihi, iade_tarihi=iade_tarihi)
-    # db.session.add(odunc)
-    # db.session.commit()
     return True, f"'{kitap.baslik}' kitabı için ödünç talebiniz personel onayına gönderildi."
 
 def get_pending_borrows():

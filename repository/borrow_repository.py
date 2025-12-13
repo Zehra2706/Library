@@ -54,3 +54,19 @@ def exists_same_book_today(user_id, book_id, bugun):
 def delete(borrow):
         db.session.delete(borrow)
         db.session.commit()
+
+@staticmethod
+def toplam_ceza(user_id):
+    return db.session.query(
+        func.coalesce(func.sum(Borrow.ceza), 0)
+    ).filter(
+        Borrow.user_id == user_id,
+        Borrow.durum != "iade_edildi"
+    ).scalar()        
+
+@staticmethod
+def count_active_borrows(user_id):
+    return Borrow.query.filter(
+        Borrow.user_id == user_id,
+        Borrow.durum == "onaylandı"
+    ).count()

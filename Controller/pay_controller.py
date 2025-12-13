@@ -109,7 +109,6 @@ def ceza_ode(user_id):
 
 
 @pay_bp.route("/payment_callback", methods=["POST"])
-@token_required
 def payment_callback():
     print("CALLBACK GELDİ:", request.form)
 

@@ -52,6 +52,68 @@
         border-top-left-radius: 0;
         border-top-right-radius: 0;
       }
+      .info-btn {
+        position: fixed;
+        top: 15px;
+        right: 20px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: #be5205;
+        color: black;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 9999;
+      }
+
+      .info-btn:hover {
+        /* background: #a0522d; */
+        opacity: 0.85;
+      }
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 10000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-content {
+        background: #fff;
+        padding: 25px;
+        width: 420px;
+        max-height: 80vh;
+        overflow-y: auto;
+        border-radius: 12px;
+      }
+
+      .close {
+        float: right;
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .modal-content {
+        animation: pop 0.25s ease;
+      }
+
+      @keyframes pop {
+        from {
+          transform: scale(0.85);
+          opacity: 0;
+        }
+        to {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
     </style>
   </head>
   <body>
@@ -80,5 +142,67 @@
     >
       Sign Up
     </button>
+    <button id="infoBtn" class="info-btn" title="Kütüphane Kuralları">?</button>
+    <div id="rulesModal" class="modal">
+      <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>📚 Kütüphaneye Hoş Geldiniz</h2>
+
+        <p>
+          Kütüphane hizmetlerinden düzenli ve adil bir şekilde
+          yararlanılabilmesi amacıyla, ödünç alma ve iade işlemlerine ilişkin
+          aşağıdaki kurallar uygulanmaktadır. Lütfen işlem gerçekleştirmeden
+          önce kuralları dikkatlice inceleyiniz.
+        </p>
+
+        <ul>
+          <li>
+            Kullanıcılar, aynı gün içerisinde
+            <strong>en fazla 3 (üç) kitap</strong> ödünç alabilir.
+          </li>
+          <li>
+            Bir kullanıcı aynı anda
+            <strong>en fazla 5 (beş) kitap</strong> bulundurabilir. Üzerinde 5
+            kitap bulunan kullanıcıların yeni kitap alabilmesi için öncelikle
+            iade işlemi gerçekleştirmesi gerekmektedir.
+          </li>
+          <li>
+            İade tarihi geçen kitaplar için, gecikilen
+            <strong>her gün başına 10 TL</strong>
+            gecikme cezası uygulanır.
+          </li>
+          <li>
+            <strong>Toplam ceza tutarı 100 TL ve üzerinde</strong> olan
+            kullanıcılar, ceza tutarını ödemeden yeni kitap ödünç alamaz.
+          </li>
+          <li>
+            Ceza ödemeleri, kullanıcı hesabı üzerinden erişilebilen
+            <strong>“Ceza Öde”</strong> bölümü aracılığıyla yapılabilir.
+          </li>
+          <li>
+            Kitap ödünç almak isteyen kullanıcıların,
+            <strong>Ödünç Sayfası</strong> üzerinden ilgili kitap için ödünç
+            talebi oluşturması gerekmektedir.
+          </li>
+          <li>
+            Oluşturulan ödünç talepleri,
+            <strong>en geç 24 saat içerisinde</strong>
+            kütüphane personeli tarafından değerlendirilerek sonuçlandırılır.
+          </li>
+        </ul>
+      </div>
+    </div>
   </body>
+  <script>
+    const infoBtn = document.getElementById("infoBtn");
+    const modal = document.getElementById("rulesModal");
+    const closeBtn = document.querySelector(".close");
+
+    infoBtn.onclick = () => (modal.style.display = "flex");
+    closeBtn.onclick = () => (modal.style.display = "none");
+
+    window.onclick = (e) => {
+      if (e.target === modal) modal.style.display = "none";
+    };
+  </script>
 </html>

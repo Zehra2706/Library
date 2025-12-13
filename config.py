@@ -16,5 +16,5 @@ class Config:
     IYZI_SECRET_KEY = "sandbox-iGCo7YDvGXxpGaXFnEPXfPOaOaPxUc0D"
     IYZI_BASE_URL = "sandbox-api.iyzipay.com"
 
-    #SECRET_KEY = "super_secret_key_12345"
     JWT_EXPIRATION_MINUTES = 120
+    SCHEDULER_API_ENABLED = True

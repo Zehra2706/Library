@@ -1,4 +1,6 @@
 import os
+from flask_apscheduler import APScheduler
+from services.borrow_services import auto_approve_old_requests
 from flask import Flask, jsonify, session
 from flask_cors import CORS
 from flask_migrate import Migrate
@@ -11,8 +13,11 @@ from core.database import db
 import threading
 import time
 import pymysql
-
+scheduler = APScheduler()
 # Kendi modüllerimizi import ediyoruz
+
+
+scheduler = APScheduler()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -35,6 +40,17 @@ def create_app(config_class=Config):
     app.register_blueprint(book_bp)
     app.register_blueprint(borrow_bp)
     app.register_blueprint(pay_bp)
+
+    scheduler.init_app(app)
+    scheduler.start()
+
+    scheduler.add_job(
+        id="auto_approve_borrows",
+        func=auto_approve_old_requests,
+        trigger="interval",
+        minutes=10,
+        replace_existing=True
+    )
 
     return app
 

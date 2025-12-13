@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Kategori Ekle</title>
+    <title>Yazar Ekle</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap");
@@ -52,9 +52,9 @@
       class="glass-container w-full max-w-lg p-8 rounded-3x1 text-white backdrop-saturate-200"
     >
       <h2 class="text-3xl font-bold mb-6 text-center text-white">
-        Yeni Kategori Ekle
+        Yeni Yazar Ekle
       </h2>
-      <form id="kategoriEkleForm" method="POST" action="/kategori-form-gonder">
+      <form id="yazarEkleForm" method="POST" action="/yazar-form-gonder">
         <!-- <div class="mb-4">
           <label for="baslik" class="block text-sm font-medium mb-2"
             >Kitap Başlığı</label
@@ -83,15 +83,15 @@
         </div> -->
 
         <div class="mb-4">
-          <label for="kategori_isim" class="block text-sm font-medium mb-2"
-            >Kategori İsmi</label
+          <label for="yazar_isim" class="block text-sm font-medium mb-2"
+            >Yazar</label
           >
           <input
             type="text"
-            name="kategori_isim"
+            name="yazar_isim"
             required
             class="w-full p-3 rounded-xl border border-gray-300 text-gray-900 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"
-            placeholder="Kategori ismi yazın."
+            placeholder="Yazarın ismini ve soyismini yazın."
           />
         </div>
 
@@ -152,25 +152,25 @@
       <span id="messageText" class="font-medium"></span>
     </div>
     <div class="mt-8 w-full max-w-lg glass-container p-4 rounded-xl">
-      <h3 class="text-2xl font-bold mb-4 text-white">Mevcut Kategoriler</h3>
+      <h3 class="text-2xl font-bold mb-4 text-white">Mevcut Yazarlar</h3>
       <table class="w-full text-white border-collapse">
         <thead>
           <tr>
             <th class="text-left px-4 py-2">#</th>
-            <th class="text-left px-4 py-2">Kategori İsmi</th>
+            <th class="text-left px-4 py-2">Yazar</th>
             <th class="text-left px-4 py-2">İşlem</th>
           </tr>
         </thead>
         <tbody>
-          {% for kategori in kategoriler %}
+          {% for yazar in yazarlar %}
           <tr class="border-t border-gray-300">
             <td class="px-4 py-2">{{ loop.index }}</td>
-            <td class="px-4 py-2">{{ kategori.isim }}</td>
+            <td class="px-4 py-2">{{ yazar.isim }}</td>
             <td class="px-4 py-2">
               <form
                 method="POST"
-                action="{{ url_for('book_bp.kategori_sil_html', kategori_id=kategori.id) }}"
-                onsubmit="return confirm('Bu kategoriyi silmek istediğinize emin misiniz?');"
+                action="{{ url_for('book_bp.yazar_sil_html', yazar_id=yazar.id) }}"
+                onsubmit="return confirm('Bu yazarı silmek istediğinize emin misiniz?');"
               >
                 <button
                   type="submit"
@@ -185,7 +185,7 @@
           {% else %}
           <tr>
             <td colspan="2" class="px-4 py-2 text-center text-gray-300">
-              Henüz kategori yok
+              Henüz yazar yok
             </td>
           </tr>
           {% endfor %}
@@ -196,7 +196,7 @@
     <a href="{{ url_for('user_bp.personel_panel') }}">Geri Dön</a>
     <script>
       document
-        .getElementById("kategoriEkleForm")
+        .getElementById("yazarEkleForm")
         .addEventListener("submit", function (e) {
           e.preventDefault(); //Formun normal sayfa yenilemesini durdurur (sayfa yeniden yüklenmez).AJAX (fetch) ile veriler arka planda gönderilecektir
           //Formdaki tüm bilgileri alır ve data adında bir JavaScript objesine dönüştürür.
@@ -231,7 +231,7 @@
                 const newRow = document.createElement("tr");
                 newRow.innerHTML = `
                   <td class="px-4 py-2">${tbody.children.length + 1}</td>
-                  <td class="px-4 py-2">${data.kategori_isim}</td>`;
+                  <td class="px-4 py-2">${data.yazar_isim}</td>`;
                 tbody.appendChild(newRow);
               } else {
                 messageBox.classList.remove("hidden", "bg-red-500");
@@ -257,9 +257,9 @@
               }, 2000);
             });
         });
-      function silKategori(kategoriId) {
-        if (confirm("Bu kategoriyi silmek istediğinize emin misiniz?")) {
-          fetch(`/kategori_sil/${kategoriId}`, {
+      function silYazar(yazarId) {
+        if (confirm("Bu yazarı silmek istediğinize emin misiniz?")) {
+          fetch(`/yazar_sil/${yazarId}`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -268,13 +268,13 @@
             .then((response) => response.json())
             .then((data) => {
               if (data.success) {
-                alert("Kategori başarıyla silindi.");
+                alert("Yazar başarıyla silindi.");
                 const btn = document.querySelector(
-                  `button[onclick="silKategori(${kategoriId})"]`
+                  `button[onclick="silYazar(${yazarId})"]`
                 );
                 btn.closest("tr").remove();
               } else {
-                alert("Kategori silinirken bir hata oluştu.");
+                alert("Yazar silinirken bir hata oluştu.");
               }
             })
             .catch((error) => {
