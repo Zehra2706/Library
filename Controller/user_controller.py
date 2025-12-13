@@ -1,7 +1,12 @@
-from datetime import datetime
-from flask import render_template, request, jsonify, redirect, url_for, flash, session, Blueprint
+from datetime import datetime, timedelta
+from flask import g, render_template, request, jsonify, redirect, session, url_for, flash, Blueprint
+from auth import  token_required
 from entity.borrow_entity import Borrow
+from entity.user_entity import User
 from repository import borrow_repository
+import jwt
+from config import Config
+from core.database import get_connection 
 from services.user_services import (user_login, add_user, change_password ,get_all_users)
 #from services.book_services import (get_books, get_book_by_id, add_book, delete_book)
 #from services.borrow_services import ( request_borrow, get_pending_borrows, approve_borrow, reject_borrow,get_user_borrows, get_all_borrows, process_return)
@@ -29,14 +34,27 @@ def signup_page():
     return render_template("signup.html")
     
 @user_bp.route('/personel_panel')
+@token_required
 def personel_panel():
+    if g.rol != "personel":
+        resp = redirect(url_for('user_bp.index'))
+        resp.set_cookie("token", "", expires=0, path="/")
+        flash("Bu sayfayı sadece personel görebilir!", "danger")
+        return resp
     return render_template('personel_panel.html')
 
 @user_bp.route('/kullanici_panel')
+@token_required
 def kullanici_panel():
+    if g.rol != "kullanici":
+        resp = redirect(url_for('user_bp.index'))
+        resp.set_cookie("token", "", expires=0, path="/")
+        flash("Bu sayfayı sadece kullanıcı görebilir!", "danger")
+        return resp
     return render_template('kullanici_panel.html')
 
 @user_bp.route('/şifre_panel')
+@token_required
 def şifre_panel():
     return render_template('sifre_degistir.html')
 
@@ -54,9 +72,11 @@ def personel_login_page():
 
 @user_bp.route('/logout')
 def logout():
-    session.clear() # Oturumu tamamen temizler
+    resp = redirect(url_for('user_bp.index'))
+    resp.set_cookie("token", "", expires=0, path="/")  # Token tamamen silinir
     flash("Başarıyla çıkış yaptınız.", "info")
-    return redirect(url_for('user_bp.index'))
+    return resp
+
 
 @user_bp.route('/login', methods=['POST'])
 def login():
@@ -69,28 +89,48 @@ def login():
     
     user = user_login(username, password) # İş Katmanı çağrısı
     
-    if user:
-        session['rol'] = user.rol
-        session['isim'] = user.isim
-        session['user_id'] = user.id
-        
-        redirect_page = "/personel_panel" if user.rol == "personel" else "/kullanici_panel"
-        
-        return jsonify({"success": True, "rol": user.rol, "isim": user.isim, "redirect": redirect_page}), 200
-    else:
+    if not user:
         return jsonify({"success": False, "hata": "Kullanıcı adı veya parola hatalı"}), 401
 
+    session['user_id'] = user.id
+    session['rol'] = user.rol  # veya user.role
+
+    expiration = datetime.utcnow() + timedelta(minutes=Config.JWT_EXPIRATION_MINUTES)
+    token= jwt.encode(
+       {
+            "user_id": user.id,
+            "rol": user.rol , 
+            "exp": expiration
+       },
+        Config.SECRET_KEY,
+        algorithm="HS256"
+    )
+    if isinstance(token, bytes):
+        token = token.decode('utf-8')
+    resp = jsonify({
+        "success": True,
+        "rol": user.rol,
+        "isim": user.isim,
+        "redirect": "/personel_panel" if user.rol == "personel" else "/kullanici_panel"
+    })  
+    resp.set_cookie("token", token, httponly=True, samesite='Lax', secure=True , path="/")
+
+    print("TOKEN:", token)
+    return resp
+
 @user_bp.route('/uye', methods=['POST'])
+@token_required
 def uye_ekle():
     data = request.get_json()
     # Veri kontrolü burada (Eksik alan kontrolü)
-    success, mesaj = add_user(data['isim'], data['email'], data['parola'], data.get('rol', 'kullanıcı')) # İş Katmanı çağrısı
+    success, mesaj = add_user(data['isim'], data['email'], data['parola'], data.get('rol', 'kullanici')) # İş Katmanı çağrısı
     if success:
         return jsonify({"mesaj": mesaj}), 200
     else:
         return jsonify({"hata": mesaj}), 400
 
 @user_bp.route('/sifre_degistir', methods=['POST'])
+@token_required
 def sifre_degistir():
     try:
         data = request.get_json()
@@ -103,6 +143,7 @@ def sifre_degistir():
         return jsonify({"hata": "Sunucu hatası", "detay": str(e)}), 500
 
 @user_bp.route('/api/search_users')
+@token_required
 def search_users():
     query = request.args.get('query', '').lower()
     all_users = get_all_users() # İş Katmanı çağrısı
@@ -121,22 +162,25 @@ def search_users():
     return jsonify(filtered_users)
 
 @user_bp.route('/api/get_users', methods=['GET'])
+@token_required
 def get_users_simple():
     liste = get_all_users() # İş Katmanı çağrısı
     return jsonify(liste)
 
 @user_bp.route('/kullanicilar')
+@token_required
 def kullanicilar():
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Bu sayfayı sadece personel görebilir!", "danger")
-        return redirect(url_for('user_bp.index'))
+        return redirect("/")
 
     liste = get_all_users() # İş Katmanı çağrısı
     return render_template("kullanicilar.html", kullanicilar=liste)
 
 @user_bp.route('/delete_user/<int:user_id>', methods=['POST'])
+@token_required
 def delete_user(user_id):
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Bu işlemi yapmaya yetkiniz yok!", "danger")
         return redirect(url_for('user_bp.index'))
 
@@ -151,14 +195,16 @@ def delete_user(user_id):
     return redirect(url_for('user_bp.kullanicilar'))
 
 @user_bp.route('/get_borrow_id')
+@token_required
 def get_borrow_id():
-    user_id = session.get("user_id")
-    borrow =Borrow.query.filter_by(user_id=user_id).filter(Borrow.ceza > 0).first()
+    user_id = g.user_id
+    borrow =Borrow.query.filter(user_id=user_id).filter(Borrow.ceza > 0).first()
     return {"borrow_id": borrow.id if borrow else None}
 
 @user_bp.route("/get_user_id")
+@token_required
 def get_user_id():
-    user_id = session.get("user_id")
+    user_id = g.user_id
     
     if not user_id:
         return jsonify({"error": "not logged in"}), 401

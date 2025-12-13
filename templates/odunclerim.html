@@ -90,6 +90,10 @@
             <span class="text-red-600 font-semibold">Reddedildi</span>
             {% elif o.durum == 'iade_edildi' %}
             <span class="text-blue-600 font-semibold">İade Edildi</span>
+            {% elif o.durum == 'geciken' %}
+            <span class="text-blue-600 font-semibold">Geciken İade</span>
+            {% elif o.durum == 'teslim_edilmedi' %}
+            <span class="text-blue-600 font-semibold">İade Edilmedi</span>
             {% endif %}
           </td>
           <td class="p-2">{{ o.gecikme_gun }}</td>

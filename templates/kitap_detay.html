@@ -75,16 +75,14 @@
 
       {% if session['rol'] == 'personel' %}
       <form
-        method="POST"
-        <form
         action="{{ url_for('book_bp.kitap_sil_html', kitap_id=kitap.id) }}"
         method="POST"
         onsubmit="return confirm('Bu kitabı silmek istediğinizden emin misiniz?');"
       >
         <button type="submit" class="btn btn-danger">Kitabı Sil</button>
       </form>
-      {% endif %} {% if session['rol'] == 'kullanıcı' %}
-      <form method="POST" action="/odunc">
+      {% elif session['rol'] == 'kullanici' %}
+      <form method="POST" action="{{ url_for('borrow_bp.odunc_al') }}">
         <input type="hidden" name="book_id" value="{{ kitap.id }}" />
         <input
           type="hidden"

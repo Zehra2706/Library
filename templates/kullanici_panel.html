@@ -75,7 +75,10 @@
         window.location.href = "/late_borrows";
       };
 
-      fetch("/get_user_id")
+      fetch("/get_user_id", {
+        method: "GET",
+        credentials: "include",
+      })
         .then((res) => res.json())
         .then((data) => {
           if (data.user_id) {

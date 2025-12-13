@@ -110,6 +110,11 @@
               <span class="text-red-600 font-semibold">Reddedildi</span>
               {% elif odunc.durum == 'iade_edildi' %}
               <span class="text-gray-600 font-semibold">İade Edildi</span>
+              {% elif odunc.durum == 'geciken' %}
+              <span class="text-blue-600 font-semibold">Geciken İade</span>
+              {% elif odunc.durum == 'teslim_edilmedi' %}
+              <span class="text-blue-600 font-semibold">İade Edilmedi</span>
+
               {% endif %}
             </td>
             <td class="px-4 py-2">{{ "%.2f"|format(odunc.ceza) }}</td>

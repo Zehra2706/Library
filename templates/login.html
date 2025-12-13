@@ -77,6 +77,18 @@
   <body>
     <div class="container">
       <h2>Giriş Yap</h2>
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div style="width: 300px; text-align: center">
+        {% for category, message in messages %}
+        <div
+          style="margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: {% if category=='danger' %}#f8d7da{% elif category=='warning' %}#fff3cd{% elif category=='info' %}#d1ecf1{% elif category=='success' %}#d4edda{% else %}#eee{% endif %}; color: #000;"
+        >
+          {{ message }}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
       <form id="loginForm">
         <input
           type="text"
@@ -112,6 +124,7 @@
             const response = await fetch("http://127.0.0.1:5000/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
+              credentials: "include", // <-- MUTLAKA OLMALI
               body: JSON.stringify({ username, password }),
             }); //Flask sunucusuna /login adresine bir POST isteği gönderir. JSON formatında {username, password} verisi yollar.
 

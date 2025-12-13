@@ -91,7 +91,8 @@
           </tr>
         </thead>
         <tbody id="userTable">
-          {% for kullanici in kullanicilar %}
+          {% for kullanici in kullanicilar %} {% if kullanici.rol == "kullanici"
+          %}
           <tr class="border-t hover:bg-gray-50">
             <td class="px-4 py-2">
               {{ kullanici.isim if kullanici.isim else 'Bilinmiyor' }}
@@ -114,8 +115,7 @@
               </form>
             </td>
           </tr>
-
-          {% endfor %}
+          {% endif %} {% endfor %}
         </tbody>
       </table>
     </div>

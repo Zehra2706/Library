@@ -1,3 +1,9 @@
 {
-  "python.analysis.extraPaths": ["./app/services", "./app", "./app", "./app"]
+  "python.analysis.extraPaths": [
+    "./app/services",
+    "./app",
+    "./app",
+    "./app",
+    "./core"
+  ]
 }

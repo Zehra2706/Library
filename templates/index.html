@@ -56,15 +56,27 @@
   </head>
   <body>
     <h1>HOŞGELDİNİZ</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div style="width: 300px; text-align: center">
+      {% for category, message in messages %}
+      <div
+        style="margin-bottom: 10px; padding: 10px; border-radius: 5px; background-color: {% if category=='danger' %}#f8d7da{% elif category=='warning' %}#fff3cd{% elif category=='info' %}#d1ecf1{% elif category=='success' %}#d4edda{% else %}#eee{% endif %}; color: #000;"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
     <button
       class="button login-btn"
-      onclick="window.location.href='login_page'"
+      onclick="window.location.href='{{ url_for('user_bp.login_page') }}'"
     >
       Login
     </button>
     <button
       class="button signup-btn"
-      onclick="window.location.href='signup_page'"
+      onclick="window.location.href='{{ url_for('user_bp.signup_page') }}'"
     >
       Sign Up
     </button>

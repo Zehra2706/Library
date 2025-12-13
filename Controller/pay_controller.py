@@ -1,6 +1,7 @@
 from unittest import result
 from flask import Blueprint, jsonify, render_template, request, redirect, session, url_for, flash
 import iyzipay
+from auth import token_required
 from entity.user_entity import User  
 from entity.borrow_entity import Borrow # kendi modellerini buraya ekle
 from core.database import db
@@ -15,6 +16,7 @@ options = {
     "base_url": Config.IYZI_BASE_URL
 }
 @pay_bp.route("/ceza_ode/<int:user_id>", methods=["GET","POST"])
+@token_required
 def ceza_ode(user_id):
     penalties=Borrow.query.filter(Borrow.user_id==user_id, Borrow.ceza >0).all()
     total_ceza = sum(b.ceza for b in penalties)
@@ -107,6 +109,7 @@ def ceza_ode(user_id):
 
 
 @pay_bp.route("/payment_callback", methods=["POST"])
+@token_required
 def payment_callback():
     print("CALLBACK GELDİ:", request.form)
 

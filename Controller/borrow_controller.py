@@ -1,6 +1,7 @@
-from flask import render_template, request, jsonify, redirect, url_for, flash, session, Blueprint
+from flask import g, render_template, request, jsonify, redirect, url_for, flash,  Blueprint
 #from services.user_services import (user_login, add_user, change_password ,get_all_users)
 #from services.book_services import (get_books, get_book_by_id, add_book, delete_book)
+from auth import token_required
 from services.borrow_services import ( request_borrow, get_pending_borrows, approve_borrow, reject_borrow,get_user_borrows, get_all_borrows, process_return)
 
 
@@ -8,7 +9,12 @@ borrow_bp = Blueprint('borrow_bp', __name__, template_folder='templates')
 
 # --- Ödünç/İade Rotaları ---
 
+@borrow_bp.route('/')
+def index():
+    return redirect('/tum_oduncler')
+
 @borrow_bp.route('/odunc', methods=['POST'])
+@token_required
 def odunc_al():
     user_id = request.form.get('user_id')
     book_id = request.form.get('book_id')
@@ -34,8 +40,9 @@ def odunc_al():
     return redirect(url_for("book_bp.kitap_detay", kitap_id=book_id))
 
 @borrow_bp.route('/bekleyen_oduncler')
+@token_required
 def bekleyen_oduncler():
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Bu sayfayı sadece personel görebilir!", "danger")
         return redirect(url_for('borrow_bp.index'))
 
@@ -43,8 +50,9 @@ def bekleyen_oduncler():
     return render_template("bekleyen_oduncler.html", oduncler=oduncler)
 
 @borrow_bp.route('/odunc_onayla/<int:odunc_id>', methods=['POST'])
+@token_required
 def odunc_onayla(odunc_id):
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Yetkiniz yok!", "danger")
         return redirect(url_for('borrow_bp.index'))
     
@@ -58,8 +66,9 @@ def odunc_onayla(odunc_id):
     return redirect(url_for('borrow_bp.bekleyen_oduncler'))
 
 @borrow_bp.route('/odunc_reddet/<int:odunc_id>', methods=['POST'])
+@token_required
 def odunc_reddet(odunc_id):
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Yetkiniz yok!", "danger")
         return redirect(url_for('borrow_bp.index'))
     
@@ -73,28 +82,31 @@ def odunc_reddet(odunc_id):
     return redirect(url_for('borrow_bp.bekleyen_oduncler'))
 
 @borrow_bp.route('/odunclerim')
+@token_required
 def odunclerim():
-    if 'user_id' not in session:
+    if not getattr(g, "user_id", None):
         flash("Ödünç kayıtlarınızı görmek için giriş yapmalısınız.", "warning")
-        return redirect(url_for('borrow_bp.login_page'))
+        return redirect(url_for('user_bp.login_page'))
     
-    user_id = session.get("user_id")
+    user_id = g.user_id
     liste = get_user_borrows(user_id) # İş Katmanı çağrısı
     return render_template("odunclerim.html", oduncler=liste, mode="all")
 
 @borrow_bp.route("/late_borrows")
+@token_required
 def late_borrows():
-    if 'user_id' not in session:
+    if not getattr(g, "user_id", None):
         flash("Ödünç kayıtlarınızı görmek için giriş yapmalısınız.", "warning")
-        return redirect(url_for('borrow_bp.login_page'))
+        return redirect(url_for('user_bp.login_page'))
     
-    user_id = session.get("user_id")
+    user_id = g.user_id
     liste=get_all_borrows(user_id)
     return render_template("odunclerim.html", oduncler=liste, mode="late")
 
 @borrow_bp.route('/tum_oduncler')
+@token_required
 def tum_oduncler():
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Bu sayfayı sadece personel görebilir!", "danger")
         return redirect(url_for('borrow_bp.index'))
     
@@ -109,8 +121,9 @@ def tum_oduncler():
     return render_template("tum_oduncler.html", oduncler=liste, mode=mode)
 
 @borrow_bp.route('/iade_al/<int:odunc_id>', methods=['GET','POST'])
+@token_required
 def iade_al(odunc_id):
-    if session.get('rol') != 'personel':
+    if g.rol != "personel":
         flash("Bu işlemi yapmaya yetkiniz yok!", "danger")
         return redirect(url_for('borrow_bp.index'))
         

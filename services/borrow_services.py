@@ -180,15 +180,15 @@ def process_return(odunc_id):
     ceza_mesaj = "Kitap başarıyla iade alındı."
     gecikme=0
 
-    if odunc.iade_tarihi and odunc.gercek_iade_tarihi.date() > odunc.iade_tarihi.date():
-        gecikme = (odunc.gercek_iade_tarihi.date() - odunc.iade_tarihi.date()).days
-        odunc.ceza = gecikme * 3.0
-        ceza_mesaj = f"{odunc.user.isim} kitabı {gecikme} gün geç getirdi. Ceza: {odunc.ceza}₺"
+    # if odunc.iade_tarihi and odunc.gercek_iade_tarihi.date() > odunc.iade_tarihi.date():
+    #     gecikme = (odunc.gercek_iade_tarihi.date() - odunc.iade_tarihi.date()).days
+    #     odunc.ceza = gecikme * 10.0
+    #     ceza_mesaj = f"{odunc.user.isim} kitabı {gecikme} gün geç getirdi. Ceza: {odunc.ceza}₺"
         
     kitap = book_repository.get_by_id(odunc.book_id)
-    if kitap:
-        kitap.mevcut = (kitap.mevcut or 0) + 1
-        book_repository.update(kitap)
+    # if kitap:
+    #     kitap.mevcut = (kitap.mevcut or 0) + 1
+    #     book_repository.update(kitap)
 
 
     if gecikme > 0:

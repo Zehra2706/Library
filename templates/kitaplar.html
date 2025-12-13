@@ -100,11 +100,12 @@
       </div>
     </main>
     <!-- Kullanıcıya göre yönlendirir. -->
-    {% if session['rol'] == 'kullanıcı' %}
-    <a href="kullanici_panel">Geri Dön</a>
-    {% endif %} {% if session['rol'] == 'personel' %}
-    <a href="personel_panel">Geri Dön</a>
+    {% if session['rol'] == 'kullanici' %}
+    <a href="{{ url_for('user_bp.kullanici_panel') }}">Geri Dön</a>
+    {% elif session['rol'] == 'personel' %}
+    <a href="{{ url_for('user_bp.personel_panel') }}">Geri Dön</a>
     {% endif %}
+
     <script>
       // const MOCK_KITAPLAR = [
       //   {

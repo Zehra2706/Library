@@ -17,7 +17,7 @@ def user_login(username, password):
         return user
     return None
 
-def add_user(isim, email, parola, rol='kullanıcı'):
+def add_user(isim, email, parola, rol='kullanici'):
     if user_repository.get_by_email(email):
         return False, "Bu e-posta ile zaten bir hesap var!"
     
