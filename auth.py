@@ -13,9 +13,19 @@ def token_required(f):
         token = request.cookies.get("token")
         print("TOKEN COOKIE:", request.cookies.get("token"))
 
+        
         if not token:
-            if request.is_json:
+            auth_header = request.headers.get("Authorization")
+            if auth_header and auth_header.startswith("Bearer "):
+                token = auth_header.split(" ")[1]
+
+
+        if not token:
+   # API çağrısıysa HER ZAMAN JSON dön
+            if request.path.startswith("/api/") or request.headers.get("Accept") == "application/json":
                 return jsonify({"error": "Token gerekli"}), 401
+
+    # Web sayfasıysa redirect
             resp = redirect(url_for('user_bp.index'))
             resp.set_cookie("token", "", expires=0, path="/")
             flash("Giriş yapmanız gerekiyor!", "warning")

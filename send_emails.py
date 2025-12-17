@@ -12,7 +12,7 @@ SMTP_PASSWORD = "pxwy wmvk jxxs rxsy" # Lütfen bu şifrenin Uygulama Şifresi o
 def send_email(app, db, EmailQueue, User):
     # Uygulama bağlamını koruyarak çalışmasını sağlıyoruz.
     with app.app_context():
-        # 1. Gönderilmemiş en eski tek bir kaydı çek. Bu, kuyruk kilitlenmesini önler.
+        # Gönderilmemiş en eski tek bir kaydı çek. Bu, kuyruk kilitlenmesini önler.
         mail = EmailQueue.query.filter_by(sent=0).order_by(EmailQueue.create_at.asc()).first()
 
         if mail is None:
@@ -21,7 +21,7 @@ def send_email(app, db, EmailQueue, User):
         recipient = None
         
         try:
-            # --- 2. ALICI ADRESİNİ BELİRLEME MANTIĞI ---
+            # --- ALICI ADRESİNİ BELİRLEME MANTIĞI ---
             
             if mail.user_id is None:
                 # Kullanıcı silinmiş: Adresi doğrudan recipient_email sütunundan al.
@@ -47,7 +47,7 @@ def send_email(app, db, EmailQueue, User):
                     db.session.commit()
                     return
 
-            # --- 3. GERÇEK SMTP GÖNDERİM İŞLEMİ ---
+            # --- GERÇEK SMTP GÖNDERİM İŞLEMİ ---
             
             msg = MIMEText(mail.body, 'html', 'utf-8')
             msg["Subject"] = Header(mail.subjectt, 'utf-8')
@@ -64,13 +64,13 @@ def send_email(app, db, EmailQueue, User):
                 server.login(SMTP_USERNAME, SMTP_PASSWORD)
                 server.sendmail(msg["From"], recipient, msg.as_string())
                 
-            # 4. BAŞARILI: Kaydı gönderildi olarak işaretle
+            # BAŞARILI: Kaydı gönderildi olarak işaretle
             mail.sent = 1
             db.session.commit()
             print(f"E-posta başarıyla gönderildi ve işaretlendi. ID: {mail.id}")
 
         except Exception as e:
-            # 5. HATA OLUŞTU: Oturumu geri al ve hatayı logla
+            # HATA OLUŞTU: Oturumu geri al ve hatayı logla
             db.session.rollback()
             print(f"Kritik Gönderim/İşleme Hatası ({mail.id}): {e}")
             

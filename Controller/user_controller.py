@@ -119,7 +119,6 @@ def login():
     return resp
 
 @user_bp.route('/uye', methods=['POST'])
-@token_required
 def uye_ekle():
     data = request.get_json()
     # Veri kontrolü burada (Eksik alan kontrolü)

@@ -1,4 +1,6 @@
 from datetime import datetime, timedelta
+
+from flask import current_app
 # from werkzeug.security import generate_password_hash, check_password_hash
 from entity.book_entity import Book
 from core.database import db    
@@ -13,20 +15,22 @@ from repository import user_repository
 from repository import email_repository 
 
 def auto_approve_old_requests():
-    limit_time = datetime.utcnow() - timedelta(hours=24)
+   with current_app.app_context():
+        limit_time = datetime.utcnow() - timedelta(hours=24)
 
-    bekleyenler = Borrow.query.filter(
-        Borrow.durum == "beklemede",
-        Borrow.alis_tarihi <= limit_time
-    ).all()
+        bekleyenler = Borrow.query.filter(
+            Borrow.durum == "beklemede",
+            Borrow.alis_tarihi <= limit_time
+        ).all()
 
-    for o in bekleyenler:
-        o.durum = "onaylandı"
-        # iade tarihi (senin sistemine göre)
-        o.iade_tarihi = o.alis_tarihi + timedelta(days=1)
+        for o in bekleyenler:
+            o.durum = "onaylandı"
+            # iade tarihi (senin sistemine göre)
+            o.iade_tarihi = o.alis_tarihi + timedelta(minutes=1)
 
-    if bekleyenler:
-        db.session.commit()
+
+        if bekleyenler:
+            db.session.commit()
 
 def request_borrow(user_id, book_id):
     kitap = book_repository.get_by_id(book_id)
@@ -52,8 +56,8 @@ def request_borrow(user_id, book_id):
         user_id=user_id,
         book_id=book_id,
         durum='beklemede',
-        alis_tarihi=now,
-        iade_tarihi=now + timedelta(days=1)
+        alis_tarihi=None,
+        iade_tarihi=None
     )
 
     borrow_repository.add(odunc)
@@ -84,12 +88,14 @@ def approve_borrow(odunc_id):
         borrow_repository.update()
         return False, "Kitap stokta yok, istek reddedildi.", None
 
-    # kitap.mevcut -= 1
+    now = datetime.utcnow()
     odunc.durum = 'onaylandı'
     # Personel onayı ile gerçek iade tarihi 1 gün olarak ayarlanır (orijinal koddaki gibi)
-    odunc.iade_tarihi = odunc.alis_tarihi + timedelta(days=1) 
-    
-    borrow_repository.update()
+    odunc.alis_tarihi = now
+    odunc.iade_tarihi = now + timedelta(minutes=1)
+
+    db.session.commit()
+
     return True, f"'{kitap.baslik}' ödünç verildi. İade tarihi: {odunc.iade_tarihi.strftime('%Y-%m-%d')}", odunc.book_id
 
 def reject_borrow(odunc_id):
@@ -108,23 +114,24 @@ def get_user_borrows(user_id):
     for o in oduncler:
         kitap = Book.query.get(o.book_id)
         gecikme_gun = 0
-        ceza = 0.0
 
         if o.iade_tarihi and simdi > o.iade_tarihi and o.durum == "onaylandı":
             gecikme_gun = (simdi - o.iade_tarihi).days
-            ceza = gecikme_gun * 3.0
+           # ceza = gecikme_gun * 3.0
             
         liste.append({
             "kitap": kitap.baslik if kitap else "Silinmiş",
             "alis_tarihi": o.alis_tarihi.strftime("%Y-%m-%d"),
-            "iade_tarihi": o.iade_tarihi.strftime("%Y-%m-%d") if o.iade_tarihi else "-",
+            "iade_tarihi": o.gercek_iade_tarihi.strftime("%Y-%m-%d") if o.gercek_iade_tarihi else o.iade_tarihi.strftime("%Y-%m-%d"),
             "gecikme_gun": gecikme_gun,
             "durum": o.durum,
-            "ceza": ceza
+            "ceza": o.ceza
         })
     return liste
 
 def get_all_borrows(user_id=None):
+    db.session.expire_all()  # EVENT / TRIGGER sonrası GÜNCEL veri için
+
     simdi = datetime.utcnow()
     if user_id:
         oduncler = borrow_repository.filter_by(user_id=user_id).all()
@@ -136,22 +143,21 @@ def get_all_borrows(user_id=None):
         if not o.book_id:
             continue 
         kitap = book_repository.get_by_id(o.book_id)
-        gecikme_gun = 0
-        ceza = o.ceza or 0.0
 
+        gecikme_gun = 0
         if o.iade_tarihi and simdi > o.iade_tarihi and o.durum == "onaylandı":
             gecikme_gun = (simdi - o.iade_tarihi).days
-            ceza = gecikme_gun * 3.0
+        #   ceza = gecikme_gun * 3.0
             
         liste.append({
             "id": o.id,
             "user": user.isim if user else "Silinmiş",
             "kitap": kitap.baslik if kitap else "Silinmiş",
             "alis_tarihi": o.alis_tarihi.strftime("%Y-%m-%d"),
-            "iade_tarihi": o.iade_tarihi.strftime("%Y-%m-%d") if o.iade_tarihi else "-",
+            "iade_tarihi": o.gercek_iade_tarihi.strftime("%Y-%m-%d") if o.gercek_iade_tarihi else o.iade_tarihi.strftime("%Y-%m-%d"),
             "gecikme_gun": gecikme_gun,
             "durum": o.durum,
-            "ceza": ceza
+            "ceza": o.ceza
         }) 
     return liste
 

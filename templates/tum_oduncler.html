@@ -93,36 +93,37 @@
           {% for odunc in oduncler %}
           <tr class="border-t hover:bg-gray-50">
             <td class="px-4 py-2">
-              {{ odunc.user if odunc.user else 'Bilinmiyor' }}
+              {{ odunc["user"] if odunc.get("user") else "Bilinmiyor" }}
             </td>
-            <td class="px-4 py-2">{{ odunc.kitap }}</td>
-            <td class="px-4 py-2">{{ odunc.alis_tarihi }}</td>
-            <td class="px-4 py-2">
-              {% if odunc.iade_tarihi %} {{ odunc.iade_tarihi }} {% else %} - {%
-              endif %}
-            </td>
-            <td class="px-4 py-2">
-              {% if odunc.durum == 'beklemede' %}
-              <span class="text-yellow-600 font-semibold">Beklemede</span>
-              {% elif odunc.durum == 'onaylandı' %}
-              <span class="text-green-600 font-semibold">Onaylandı</span>
-              {% elif odunc.durum == 'reddedildi' %}
-              <span class="text-red-600 font-semibold">Reddedildi</span>
-              {% elif odunc.durum == 'iade_edildi' %}
-              <span class="text-gray-600 font-semibold">İade Edildi</span>
-              {% elif odunc.durum == 'geciken' %}
-              <span class="text-blue-600 font-semibold">Geciken İade</span>
-              {% elif odunc.durum == 'teslim_edilmedi' %}
-              <span class="text-blue-600 font-semibold">İade Edilmedi</span>
 
+            <td class="px-4 py-2">{{ odunc["kitap"] }}</td>
+
+            <td class="px-4 py-2">{{ odunc["alis_tarihi"] }}</td>
+
+            <td class="p-2">
+              {% if odunc["gercek_iade_tarihi"] %} {{
+              odunc["gercek_iade_tarihi"] }} {% else %} {{ odunc["iade_tarihi"]
+              }} {% endif %}
+            </td>
+            <td class="px-4 py-2">
+              {% if odunc["durum"] == 'beklemede' %}
+              <span class="text-yellow-600 font-semibold">Beklemede</span>
+              {% elif odunc["durum"] == 'onaylandı' %}
+              <span class="text-green-600 font-semibold">Onaylandı</span>
+              {% elif odunc["durum"] == 'reddedildi' %}
+              <span class="text-red-600 font-semibold">Reddedildi</span>
+              {% elif odunc["durum"] == 'iade_edildi' %}
+              <span class="text-gray-600 font-semibold">İade Edildi</span>
               {% endif %}
             </td>
-            <td class="px-4 py-2">{{ "%.2f"|format(odunc.ceza) }}</td>
+
+            <td class="px-4 py-2">{{ odunc.get("ceza", 0) }}</td>
+
             {% if mode == 'iade' %}
             <td class="px-4 py-2 text-center">
               {% if odunc.durum == 'onaylandı' %}
               <form
-                action="{{ url_for('borrow_bp.iade_al', odunc_id=odunc.id) }}"
+                action="{{ url_for('borrow_bp.iade_al', odunc_id=odunc['id']) }}"
                 method="post"
               >
                 <button

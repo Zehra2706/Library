@@ -76,29 +76,34 @@
         </tr>
       </thead>
       <tbody>
-        {% for o in oduncler %} {% if mode != 'late' or o.ceza > 0 %}
+        {% for o in oduncler %} {% if mode != 'late' or o["ceza"] > 0 %}
         <tr class="border-t">
-          <td class="p-2">{{ o.kitap }}</td>
-          <td class="p-2">{{ o.alis_tarihi }}</td>
-          <td class="p-2">{{ o.iade_tarihi }}</td>
-          <td>
-            {% if o.durum == 'beklemede' %}
+          <td class="p-2">{{ o["kitap"] }}</td>
+          <td class="p-2">{{ o["alis_tarihi"] }}</td>
+          <td class="p-2">
+            {% if o["gercek_iade_tarihi"] %}
+               {{ o["gercek_iade_tarihi"] }}
+            {% else %}
+               {{ o["iade_tarihi"] }}
+            {% endif %}
+            </td> <td>
+            {% if o["durum"] == 'beklemede' %}
             <span class="text-yellow-600 font-semibold">Beklemede</span>
-            {% elif o.durum == 'onaylandı' %}
+            {% elif o["durum"] == 'onaylandı' %}
             <span class="text-green-600 font-semibold">Onaylandı</span>
-            {% elif o.durum == 'reddedildi' %}
+            {% elif o["durum"] == 'reddedildi' %}
             <span class="text-red-600 font-semibold">Reddedildi</span>
-            {% elif o.durum == 'iade_edildi' %}
+            {% elif o["durum"] == 'iade_edildi' %}
             <span class="text-blue-600 font-semibold">İade Edildi</span>
-            {% elif o.durum == 'geciken' %}
+            {% elif o["durum"] == 'geciken' %}
             <span class="text-blue-600 font-semibold">Geciken İade</span>
-            {% elif o.durum == 'teslim_edilmedi' %}
+            {% elif o["durum"] == 'teslim_edilmedi' %}
             <span class="text-blue-600 font-semibold">İade Edilmedi</span>
             {% endif %}
           </td>
-          <td class="p-2">{{ o.gecikme_gun }}</td>
-          <td class="p-2 {% if o.ceza > 0 %}text-red-500 font-bold{% endif %}">
-            {{ o.ceza }}
+          <td class="p-2">{{ o["gecikme_gun"] }}</td>
+          <td class="p-2 {% if o["ceza"] > 0 %}text-red-500 font-bold{% endif %}">
+               {{ o["ceza"] }}
           </td>
         </tr>
         {% endif %} {% endfor %}
