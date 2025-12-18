@@ -1,5 +1,6 @@
 # from datetime import datetime, timedelta
 # from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.exc import IntegrityError
 from entity.book_entity import Book
 from core.database import db
 from sqlalchemy import func
@@ -59,6 +60,15 @@ def delete_book(kitap_id):
     kitap = book_repository.get_by_id(kitap_id)
     if not kitap:
         return False, "Kitap bulunamadı."
-    
-    book_repository.delete(kitap)
-    return True, f"'{kitap.baslik}' adlı kitap silindi."
+
+    try:
+        book_repository.delete(kitap)
+        return True, f"'{kitap.baslik}' adlı kitap silindi."
+    except IntegrityError:
+        db.session.rollback()
+        return False, "Bu kitap ödünçte olduğu için silinemez"
+    except Exception as e:
+        db.session.rollback()
+        return False, "Silme sırasında hata oluştu"        
+
+ 

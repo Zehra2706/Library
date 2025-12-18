@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from flask import current_app
+#from flask import current_app
 # from werkzeug.security import generate_password_hash, check_password_hash
 from entity.book_entity import Book
 from core.database import db    
@@ -14,14 +14,18 @@ from repository import borrow_repository
 from repository import user_repository
 from repository import email_repository 
 
-def auto_approve_old_requests():
-   with current_app.app_context():
-        limit_time = datetime.utcnow() - timedelta(hours=24)
+def auto_approve_old_requests(app):
+    with app.app_context():
+        print("AUTO APPROVE JOB ÇALIŞTI:", datetime.now())
+
+        limit_time = datetime.now() - timedelta(hours=24)
 
         bekleyenler = Borrow.query.filter(
             Borrow.durum == "beklemede",
             Borrow.alis_tarihi <= limit_time
         ).all()
+        print("Bulunan bekleyen kayıt sayısı:", len(bekleyenler))
+
 
         for o in bekleyenler:
             o.durum = "onaylandı"
@@ -51,12 +55,12 @@ def request_borrow(user_id, book_id):
     if borrow_repository.exists_same_book_today(user_id, book_id, bugun):
         return False, "Bu kitap için bugün zaten talep gönderdiniz."
 
-    now = datetime.utcnow()
+   # now = datetime.utcnow()
     odunc = Borrow(
         user_id=user_id,
         book_id=book_id,
         durum='beklemede',
-        alis_tarihi=None,
+        alis_tarihi=datetime.utcnow(),
         iade_tarihi=None
     )
 
@@ -122,7 +126,13 @@ def get_user_borrows(user_id):
         liste.append({
             "kitap": kitap.baslik if kitap else "Silinmiş",
             "alis_tarihi": o.alis_tarihi.strftime("%Y-%m-%d"),
-            "iade_tarihi": o.gercek_iade_tarihi.strftime("%Y-%m-%d") if o.gercek_iade_tarihi else o.iade_tarihi.strftime("%Y-%m-%d"),
+            "iade_tarihi": (
+                    o.gercek_iade_tarihi.strftime("%Y-%m-%d")
+                    if o.gercek_iade_tarihi
+                    else o.iade_tarihi.strftime("%Y-%m-%d")
+                    if o.iade_tarihi
+                    else "-"
+                    ),            
             "gecikme_gun": gecikme_gun,
             "durum": o.durum,
             "ceza": o.ceza
@@ -154,7 +164,13 @@ def get_all_borrows(user_id=None):
             "user": user.isim if user else "Silinmiş",
             "kitap": kitap.baslik if kitap else "Silinmiş",
             "alis_tarihi": o.alis_tarihi.strftime("%Y-%m-%d"),
-            "iade_tarihi": o.gercek_iade_tarihi.strftime("%Y-%m-%d") if o.gercek_iade_tarihi else o.iade_tarihi.strftime("%Y-%m-%d"),
+            "iade_tarihi": (
+                    o.gercek_iade_tarihi.strftime("%Y-%m-%d")
+                    if o.gercek_iade_tarihi
+                    else o.iade_tarihi.strftime("%Y-%m-%d")
+                    if o.iade_tarihi
+                    else "-"
+                    ),
             "gecikme_gun": gecikme_gun,
             "durum": o.durum,
             "ceza": o.ceza

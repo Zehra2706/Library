@@ -146,7 +146,6 @@ def payment_callback():
     penalties = Borrow.query.filter(Borrow.user_id == user_id, Borrow.ceza > 0).all()
     for b in penalties:
         b.ceza = 0
-        b.durum = "iade_edildi"
     db.session.commit()
 
     flash("Ödeme başarılı!", "success")

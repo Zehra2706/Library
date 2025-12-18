@@ -11,4 +11,10 @@ class Borrow(db.Model):
     gercek_iade_tarihi = db.Column(db.DateTime, nullable=True)
     ceza = db.Column(db.Float, default=0.0)
     durum = db.Column(db.String(20), default='beklemede')
-    book = db.relationship('Book', backref='borrows')
+    book = db.relationship(
+        'Book',
+         backref=db.backref(
+            'borrows',
+            passive_deletes=True
+        )
+    )

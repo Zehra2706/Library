@@ -13,11 +13,10 @@ from core.database import db
 import threading
 import time
 import pymysql
+
 scheduler = APScheduler()
 # Kendi modüllerimizi import ediyoruz
 
-
-scheduler = APScheduler()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -47,6 +46,7 @@ def create_app(config_class=Config):
     scheduler.add_job(
         id="auto_approve_borrows",
         func=auto_approve_old_requests,
+        args=[app], 
         trigger="interval",
         minutes=10,
         replace_existing=True
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     app = create_app()
     if os.environ.get("WERKZEUG_RUN_MAIN") == "true" or os.environ.get("WERKZEUG_RUN_MAIN") is None:
         with app.app_context(): 
+            print("FLASK DB:", db.engine.url)
 
         # db.drop_all() # Gerekirse tüm tabloları siler
             db.create_all() # Tabloları oluşturur
