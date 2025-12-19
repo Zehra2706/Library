@@ -89,7 +89,7 @@
           </label>
 
           <select
-            name="kategori_id"
+            name="kategori"
             id="kategori"
             required
             class="w-full p-3 rounded-xl border border-gray-300 bg-white text-gray-900 focus:ring-indigo-500 transition"
@@ -168,10 +168,10 @@
           const formData = new FormData(form);
           const data = Object.fromEntries(formData.entries()); //JavaScript’te form verilerini kolayca bir nesneye dönüştürmek için kullanılır.formData.entries() bu değerleri [anahtar, değer] çiftleri (bir dizi gibi) olarak döner.Bu metot, böyle bir çiftler dizisini nesneye dönüştürür.
 
-          const kategori = document.getElementById("kategori").value;
-          data.kategori_id = kategori;
+          // const kategori = document.getElementById("kategori").value;
+          // data.kategori = kategori;
 
-          fetch(form.action, {
+          fetch("/kitap-form-gonder", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -188,20 +188,19 @@
               //.then() metodu, bir Promise başarılı şekilde sonuçlandığında (örneğin, fetch() isteği sunucudan cevap aldığında) çalışır.İçine yazdığın fonksiyon, o cevabı parametre olarak alır.({ status, body }) “destructuring” (nesne parçalama) denir.
               const messageBox = document.getElementById("messageBox");
               const messageText = document.getElementById("messageText");
+              messageBox.classList.remove("hidden");
 
-              if (status === 200) {
-                messageBox.classList.remove("hidden", "bg-red-500");
+              if (status === 200 || status === 201) {
+                messageBox.classList.remove("bg-red-500");
                 messageBox.classList.add("bg-green-500");
-                messageText.textContent =
-                  body.mesaj || "Kitap Başarıyla Eklendi";
+                messageText.textContent = body.mesaj ?? "Başarıyla eklendi.";
                 form.reset();
               } else {
-                messageBox.classList.remove("hidden", "bg-red-500");
-                messageBox.classList.add("bg-green-500");
-                messageText.textContent =
-                  body.mesaj || "Kitap Başarıyla Eklendi";
+                messageBox.classList.remove("bg-green-500");
+                messageBox.classList.add("bg-red-500");
+                messageText.textContent = body.hata ?? "Bir hata oluştu.";
 
-                messageText.textContent = body.hata || "Bir hata oluştu";
+                // messageText.textContent = body.hata || "Bir hata oluştu";
               }
 
               setTimeout(() => {

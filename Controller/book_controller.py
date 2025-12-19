@@ -1,53 +1,60 @@
 from flask import g, render_template, request, jsonify, redirect, url_for, flash, session, Blueprint
-#from services.user_services import (user_login, add_user, change_password ,get_all_users)
 from auth import token_required
-from entity.category_entity import Category
-from entity.yazar_entity import Yazar
+# from entity.category_entity import Category
+# from entity.yazar_entity import Yazar
 from repository import category_repository
 from repository import yazar_repository
-from repository import book_repository
-from services.book_services import (add_category, add_yazar, get_books, get_book_by_id, add_book, delete_book)
-#from services.borrow_services import ( request_borrow, get_pending_borrows, approve_borrow, reject_borrow,get_user_borrows, get_all_borrows, process_return)
+# from repository import book_repository
+from services import book_services
+from services.book_services import (add_category, add_yazar, get_books, get_book_by_id, delete_book)
 
 
 book_bp = Blueprint('book_bp', __name__, template_folder='templates')
 
-# @book_bp.route('/kitap_ekle_form')
-# def kitap_ekle_form():
-#     return render_template('kitap_ekle.html')
 @book_bp.route('/')
 def index():
     return render_template("index.html")
 
-@book_bp.route('/kategori_ekle_form')
+# @book_bp.route('/kategori_ekle_form')
+# @token_required
+# def kategori_ekle_form():
+#     kategoriler = category_repository.get_all()
+#     return render_template('kategori_ekle.html', kategoriler=kategoriler)
+
+
+# @book_bp.route('/yazar_ekle_form')
+# @token_required
+# def yazar_ekle_form():
+#     yazarlar = yazar_repository.get_all()
+#     return render_template('yazar_ekle.html', yazarlar=yazarlar)
+@book_bp.route('/api/kitaplar', methods=['GET'])
 @token_required
-def kategori_ekle_form():
-    kategoriler = category_repository.get_all()
-    return render_template('kategori_ekle.html', kategoriler=kategoriler)
-
-
-@book_bp.route('/yazar_ekle_form')
-@token_required
-def yazar_ekle_form():
-    yazarlar = yazar_repository.get_all()
-    return render_template('yazar_ekle.html', yazarlar=yazarlar)
-
+def api_kitaplar():
+    q = request.args.get("q", "")
+    kitaplar = get_books(q)
+    return jsonify(kitaplar), 200
 
 @book_bp.route('/kitaplar')
 @token_required
 def kitaplar():
     q = request.args.get("q", "")
     kitaplar_json_listesi = get_books(q) # İş Katmanı çağrısı
-   # return redirect(url_for('book_bp.kitaplar')) 
-   #print(kitaplar_json_listesi)
     return render_template("kitaplar.html", kitaplar_data=kitaplar_json_listesi, arama=q)
+
+@book_bp.route('/api/kitap/<int:kitap_id>', methods=['GET'])
+@token_required
+def api_kitap_detay(kitap_id):
+    kitap = get_book_by_id(kitap_id)
+    if not kitap:
+        return jsonify({"hata": "Kitap bulunamadı"}), 404
+    return jsonify(kitap.to_dict()), 200
+
 
 @book_bp.route('/kitap/<int:kitap_id>')
 @token_required
 def kitap_detay(kitap_id):
     kitap_obj = get_book_by_id(kitap_id)
     if not kitap_obj:
-        # get_or_404 kullanımı kaldırıldı, elle 404 döndürme veya redirect
         flash("Kitap bulunamadı.", "danger")
         return redirect(url_for('book_bp.kitaplar')) 
         
@@ -60,108 +67,30 @@ def kitap_ekle_form():
     print(kategoriler)
     return render_template("kitap_ekle.html", kategoriler=kategoriler)
 
-
 @book_bp.route('/kitap-form-gonder', methods=['POST'])
 @token_required
-def kitap_form_gonder():
-    try:
-        data = request.get_json()
-        if not data:
-            return jsonify({"hata": "JSON verisi gönderilmedi."}), 400
+def create_book():
+    data = request.get_json()
 
-        required_fields = ["baslik", "yazar", "kategori_id"]
-        missing_fields = [f for f in required_fields if f not in data or data[f] == ""]
+    success, message = book_services.create_book(data)
 
-        # if not kategori:
-        #     return jsonify({"hata": "Bu kategori bulunamadı"}), 400
-        
-        if missing_fields:
-            return jsonify({"hata": f"Eksik alanlar: {', '.join(missing_fields)}"}), 400
+    if success:
+        return jsonify({"message": message}), 201
+    else:
+        return jsonify({"hata": message}), 400
 
-        # Mevcut ve detay boş gelebilir, varsayılan değerler atanır.
-        baslik = data["baslik"]
-        yazar_adi = data["yazar"]
-        kategori_isim = data["kategori_id"]  # isim geliyor!
-        mevcut = data.get("mevcut", 0)
-        detay = data.get("detay")
-        image_url = data.get("image_url")
- # İş Katmanı çağrısı
-
-        yazar= yazar_repository.get_by_name(yazar_adi)
-        if not yazar:
-            return jsonify({"hata": " Yazar bulunamadı"}), 400       
- 
-
-        print("gelen json: ",data)
-
-        kategori = category_repository.get_by_name(kategori_isim)
-        
-        if kategori is None:
-            return jsonify({"hata": "kategori bulunamadı"}), 400
-        kategori_id = kategori.id
-
-        print("kategori id: ",kategori_id)
-
-        success, mesaj = add_book(baslik, yazar_adi, kategori_id, mevcut, detay, image_url)
-        if success:
-            return jsonify({"mesaj": mesaj}), 200
-        else:
-            return jsonify({"hata": mesaj}), 400
-    except Exception as e:
-        return jsonify({"hata": f"Sunucu hatası: {str(e)}"}), 500
-    
-
-@book_bp.route('/kategori-form-gonder', methods=['POST'])
+@book_bp.route('/api/kitap_sil/<int:kitap_id>', methods=['DELETE'])
 @token_required
-def kategori_form_gonder():
-    try:
-        data = request.get_json()
+def api_kitap_sil(kitap_id):
+    if g.rol != "personel":
+        return jsonify({"error": "Yetkisiz işlem"}), 403
 
-        if not data or "kategori_isim" not in data:
-            return jsonify({"hata": "Kategori ismi boş olamaz"}), 400
+    success, mesaj = delete_book(kitap_id)
 
-        kategori_adi = data["kategori_isim"]
-        yeni = Category(isim=kategori_adi)
-
-
-        if kategori_adi == "":
-            return jsonify({"hata": "Kategori ismi boş olamaz"}), 400
-
-        success, mesaj = add_category(kategori_adi)
-
-        if success:
-            return jsonify({"mesaj": mesaj}), 200
-        else:
-            return jsonify({"hata": mesaj}), 400
-
-    except Exception as e:
-        return jsonify({"hata": f"Sunucu hatası: {str(e)}"}), 500   
-
-@book_bp.route('/yazar-form-gonder', methods=['POST'])
-@token_required
-def yazar_form_gonder():
-    try:
-        data = request.get_json()
-
-        if not data or "yazar_isim" not in data:
-            return jsonify({"hata": "Yazar ismi boş olamaz"}), 400
-
-        yazar_adi = data["yazar_isim"]
-        yeni = Yazar(isim=yazar_adi)
-
-        if yazar_adi == "":
-            return jsonify({"hata": "Yazar ismi boş olamaz"}), 400
-
-        success, mesaj = add_yazar(yazar_adi)
-
-        if success:
-            return jsonify({"mesaj": mesaj}), 200
-        else:
-            return jsonify({"hata": mesaj}), 400
-
-    except Exception as e:
-        return jsonify({"hata": f"Sunucu hatası: {str(e)}"}), 500   
-
+    if success:
+        return jsonify({"message": mesaj}), 200
+    else:
+        return jsonify({"error": mesaj}), 400
 
 @book_bp.route('/kitap/sil/<int:kitap_id>' , methods=['POST'])
 @token_required
@@ -177,6 +106,72 @@ def kitap_sil_html(kitap_id):
         flash(mesaj, "danger")
         
     return redirect(url_for('book_bp.kitaplar'))
+
+@book_bp.route('/api/kategoriler', methods=['GET'])
+@token_required
+def api_kategoriler():
+    kategoriler = category_repository.get_all()
+    return jsonify([
+        {
+            "id": k.id,
+            "isim": k.isim
+        } for k in kategoriler
+    ]), 200
+
+@book_bp.route('/kategori_ekle_form')
+@token_required
+def kategori_ekle_form():
+    kategoriler = category_repository.get_all()
+    return render_template('kategori_ekle.html', kategoriler=kategoriler)
+
+
+@book_bp.route('/kategori-form-gonder', methods=['POST'])
+@token_required
+def kategori_form_gonder():
+    try:
+        data = request.get_json()
+
+        if not data or "kategori_isim" not in data:
+            return jsonify({"hata": "Kategori ismi boş olamaz"}), 400
+
+        kategori_adi = data["kategori_isim"]
+        # yeni = Category(isim=kategori_adi)
+
+
+        if kategori_adi == "":
+            return jsonify({"hata": "Kategori ismi boş olamaz"}), 400
+
+        success, mesaj = add_category(kategori_adi)
+
+        if success:
+            return jsonify({"mesaj": mesaj}), 200
+        else:
+            return jsonify({"hata": mesaj}), 400
+
+    except Exception as e:
+        return jsonify({"hata": f"Sunucu hatası: {str(e)}"}), 500   
+
+@book_bp.route('/api/kategori/<int:kategori_id>', methods=['DELETE'])
+@token_required
+def api_kategori_sil(kategori_id):
+
+    if g.rol != "personel":
+        return jsonify({"hata": "Yetkisiz işlem"}), 403
+
+    # if category_repository.has_books(kategori_id):
+    #     return jsonify({"hata": "Kategoriye ait kitaplar var"}), 400
+
+    kategori = category_repository.get_by_id(kategori_id)
+    if not kategori:
+        return jsonify({"hata": "Kategori bulunamadı"}), 404
+
+    success, mesaj = category_repository.delete(kategori)
+
+    if success:
+        return jsonify({"mesaj": mesaj}), 200
+    else:
+        return jsonify({"hata": mesaj}), 400
+
 
 @book_bp.route('/kategori/sil/<int:kategori_id>' , methods=['POST'])
 @token_required 
@@ -195,6 +190,62 @@ def kategori_sil_html(kategori_id):
         flash(mesaj, "danger")
         
     return redirect(url_for('book_bp.kategori_ekle_form'))
+
+@book_bp.route('/api/yazarlar', methods=['GET'])
+@token_required
+def api_yazarlar():
+    yazarlar = yazar_repository.get_all()
+    return jsonify([y.to_dict() for y in yazarlar]), 200
+
+@book_bp.route('/yazar_ekle_form')
+@token_required
+def yazar_ekle_form():
+    yazarlar = yazar_repository.get_all()
+    return render_template('yazar_ekle.html', yazarlar=yazarlar)
+
+@book_bp.route('/yazar-form-gonder', methods=['POST'])
+@token_required
+def yazar_form_gonder():
+    try:
+        data = request.get_json()
+
+        if not data or "yazar_isim" not in data:
+            return jsonify({"hata": "Yazar ismi boş olamaz"}), 400
+
+        yazar_adi = data["yazar_isim"]
+        # yeni = Yazar(isim=yazar_adi)
+
+        if yazar_adi == "":
+            return jsonify({"hata": "Yazar ismi boş olamaz"}), 400
+
+        success, mesaj = add_yazar(yazar_adi)
+
+        if success:
+            return jsonify({"mesaj": mesaj}), 200
+        else:
+            return jsonify({"hata": mesaj}), 400
+
+    except Exception as e:
+        return jsonify({"hata": f"Sunucu hatası: {str(e)}"}), 500   
+
+@book_bp.route('/api/yazar_sil/<int:yazar_id>', methods=['DELETE'])
+@token_required
+def api_yazar_sil(yazar_id):
+
+    if g.rol != "personel":
+        return jsonify({"hata": "Yetkisiz işlem"}), 403
+
+    yazar = yazar_repository.get_by_id(yazar_id)
+    if not yazar:
+        return jsonify({"hata": "Yazar bulunamadı"}), 404
+
+    success, mesaj = yazar_repository.delete(yazar)
+
+    if success:
+        return jsonify({"mesaj": mesaj}), 200
+    else:
+        return jsonify({"hata": mesaj}), 400
+
 
 @book_bp.route('/yazar/sil/<int:yazar_id>' , methods=['POST'])
 @token_required 

@@ -9,7 +9,6 @@ from config import Config
 from entity.user_entity import User
 from entity.email_entity import EmailQueue
 from core.database import db
-
 import threading
 import time
 import pymysql

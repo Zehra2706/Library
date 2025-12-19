@@ -34,7 +34,7 @@ def delete(kategori):
     try:
         db.session.delete(kategori)
         db.session.commit()
-        return True, " "
+        return True, "Kategori silindi. "
     except Exception as e:
         db.session.rollback()
         return False, str(e)

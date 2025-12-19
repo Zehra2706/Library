@@ -20,10 +20,15 @@ def get_by_id(book_id):
 def get_by_name(name):
         return Book.query.filter_by(isim=name).first()
 
+# def add(book):
+#         db.session.add(book)
+#         db.session.commit()
+
 @staticmethod
-def add(book):
-        db.session.add(book)
-        db.session.commit()
+def create(**kwargs):
+    book = Book(**kwargs)
+    db.session.add(book)
+    db.session.commit()        
 
 @staticmethod
 def delete(book):
@@ -34,3 +39,7 @@ def delete(book):
 def update(book):
     db.session.commit()
     return True
+
+@staticmethod
+def exists_by_title(title):
+    return Book.query.filter_by(baslik=title).first() is not None
