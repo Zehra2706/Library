@@ -1,10 +1,7 @@
 from flask import g, render_template, request, jsonify, redirect, url_for, flash, session, Blueprint
 from auth import token_required
-# from entity.category_entity import Category
-# from entity.yazar_entity import Yazar
 from repository import category_repository
 from repository import yazar_repository
-# from repository import book_repository
 from services import book_services
 from services.book_services import (add_category, add_yazar, get_books, get_book_by_id, delete_book)
 
@@ -15,18 +12,6 @@ book_bp = Blueprint('book_bp', __name__, template_folder='templates')
 def index():
     return render_template("index.html")
 
-# @book_bp.route('/kategori_ekle_form')
-# @token_required
-# def kategori_ekle_form():
-#     kategoriler = category_repository.get_all()
-#     return render_template('kategori_ekle.html', kategoriler=kategoriler)
-
-
-# @book_bp.route('/yazar_ekle_form')
-# @token_required
-# def yazar_ekle_form():
-#     yazarlar = yazar_repository.get_all()
-#     return render_template('yazar_ekle.html', yazarlar=yazarlar)
 @book_bp.route('/api/kitaplar', methods=['GET'])
 @token_required
 def api_kitaplar():

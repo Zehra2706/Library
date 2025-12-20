@@ -223,3 +223,24 @@ def process_return(odunc_id):
    
     email_repository.add(email)
     return True, ceza_mesaj
+
+def borrow_book(user_id: int, book_id: int):
+    """
+    Kullanıcının kitap ödünç almasını kontrol eder ve uygular.
+    Return: (success: bool, message: str)
+    """
+    # ID kontrolü
+    try:
+        user_id = int(user_id)
+        book_id = int(book_id)
+    except (TypeError, ValueError):
+        return False, "Geçersiz kullanıcı veya kitap ID"
+
+    # Ceza kontrolü
+    toplam = borrow_repository.toplam_ceza(user_id)
+    if toplam >= 100:
+        return False, f"Toplam cezanız {toplam} TL olduğu için yeni kitap ödünç alamazsınız."
+
+    # Ödünç işlemi
+    success, mesaj = request_borrow(user_id, book_id)
+    return success, mesaj

@@ -1,3 +1,4 @@
+from flask import request
 from entity.borrow_entity import Borrow
 from core.database import db
 from sqlalchemy import func
@@ -70,3 +71,7 @@ def count_active_borrows(user_id):
         Borrow.user_id == user_id,
         Borrow.durum == "onaylandı"
     ).count()
+
+@staticmethod
+def wants_json_response():
+    return request.is_json or request.headers.get('Accept') == 'application/json'

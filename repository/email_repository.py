@@ -12,3 +12,11 @@ def add(email):
 def get_by_id(user_id):
         return EmailQueue.query.get(user_id)
 
+def delete_by_user_id(user_id):
+    try:
+        EmailQueue.query.filter_by(user_id=user_id).delete()
+        db.session.commit()
+        return True, "Kullanıcıya ait email kayıtları silindi."
+    except Exception as e:
+        db.session.rollback()
+        return False, str(e)

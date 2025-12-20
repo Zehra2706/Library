@@ -22,7 +22,7 @@ def token_required(f):
             if auth_header and auth_header.startswith("Bearer "):
                 token = auth_header.split(" ")[1]
 
-        # 🔴 TOKEN YOK
+       
         if not token:
             if is_api:
                 return api_error("Token gerekli")

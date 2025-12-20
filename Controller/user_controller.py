@@ -2,28 +2,16 @@ from datetime import datetime, timedelta
 from flask import g, render_template, request, jsonify, redirect, session, url_for, flash, Blueprint
 from auth import  token_required
 from entity.borrow_entity import Borrow
-from entity.user_entity import User
-from repository import borrow_repository
+from repository import email_repository
 import jwt
 from config import Config
-from core.database import get_connection 
 from services.user_services import (user_login, add_user, change_password ,get_all_users)
-#from services.book_services import (get_books, get_book_by_id, add_book, delete_book)
-#from services.borrow_services import ( request_borrow, get_pending_borrows, approve_borrow, reject_borrow,get_user_borrows, get_all_borrows, process_return)
-
 
 user_bp = Blueprint('user_bp', __name__, template_folder='templates')
-
-# --- HTML Sayfası Yönlendirmeleri ---
-
-
-# --- Kullanıcı/Giriş Çıkış Rotaları ---
 
 @user_bp.route('/')
 def index():
     return render_template("index.html")
-
-# Diğer tüm sayfa yönlendirmeleri de buraya gelir (login_page, signup_page, personel_panel vb.)
 
 @user_bp.route('/login_page')
 def login_page():
@@ -53,30 +41,12 @@ def kullanici_panel():
         return resp
     return render_template('kullanici_panel.html')
 
-@user_bp.route('/şifre_panel')
-@token_required
-def şifre_panel():
-    return render_template('sifre_degistir.html')
-
-# routes.py içine ekleyin (HTML Sayfası Yönlendirmeleri altına)
-
-@user_bp.route('/user_login_page')
-def user_login_page():
-    # Bu rotanın HTML şablonundan çağrılması muhtemeldir
-    return render_template("user_login.html")
-
-@user_bp.route('/personel_login_page')
-def personel_login_page():
-    # Bu rotanın HTML şablonundan çağrılması muhtemeldir
-    return render_template("personel_login.html")
-
 @user_bp.route('/logout')
 def logout():
     resp = redirect(url_for('user_bp.index'))
     resp.set_cookie("token", "", expires=0, path="/")  # Token tamamen silinir
     flash("Başarıyla çıkış yaptınız.", "info")
     return resp
-
 
 @user_bp.route('/login', methods=['POST'])
 def login():
@@ -118,29 +88,6 @@ def login():
     print("TOKEN:", token)
     return resp
 
-@user_bp.route('/uye', methods=['POST'])
-def uye_ekle():
-    data = request.get_json()
-    # Veri kontrolü burada (Eksik alan kontrolü)
-    success, mesaj = add_user(data['isim'], data['email'], data['parola'], data.get('rol', 'kullanici')) # İş Katmanı çağrısı
-    if success:
-        return jsonify({"mesaj": mesaj}), 200
-    else:
-        return jsonify({"hata": mesaj}), 400
-
-@user_bp.route('/sifre_degistir', methods=['POST'])
-@token_required
-def sifre_degistir():
-    try:
-        data = request.get_json()
-        success, mesaj = change_password(data.get('isim'), data.get('eskiSifre'), data.get('yeniSifre')) # İş Katmanı çağrısı
-        if success:
-            return jsonify({"mesaj": mesaj}), 200
-        else:
-            return jsonify({"hata": mesaj}), 401
-    except Exception as e:
-        return jsonify({"hata": "Sunucu hatası", "detay": str(e)}), 500
-
 @user_bp.route('/api/search_users')
 @token_required
 def search_users():
@@ -176,20 +123,41 @@ def kullanicilar():
     liste = get_all_users() # İş Katmanı çağrısı
     return render_template("kullanicilar.html", kullanicilar=liste)
 
-@user_bp.route('/delete_user/<int:user_id>', methods=['POST'])
+@user_bp.route('/uye', methods=['POST'])
+def uye_ekle():
+    data = request.get_json()
+    # Veri kontrolü burada (Eksik alan kontrolü)
+    success, mesaj = add_user(data['isim'], data['email'], data['parola'], data.get('rol', 'kullanici')) # İş Katmanı çağrısı
+    if success:
+        return jsonify({"mesaj": mesaj}), 200
+    else:
+        return jsonify({"hata": mesaj}), 400
+
+@user_bp.route('/delete_user/<int:user_id>', methods=['DELETE'])
 @token_required
 def delete_user(user_id):
     if g.rol != "personel":
+        if request.is_json:
+            return jsonify({"hata": "Yetkisiz işlem"}), 403
         flash("Bu işlemi yapmaya yetkiniz yok!", "danger")
         return redirect(url_for('user_bp.index'))
 
     from repository import user_repository
     user = user_repository.get_by_id(user_id)
     if not user:
+        if request.is_json:
+            return jsonify({"hata": "Kullanıcı bulunamadı"}), 404
         flash("Kullanıcı bulunamadı!", "danger")
         return redirect(url_for('user_bp.kullanicilar'))
 
+    success, mesaj = email_repository.delete_by_user_id(user.id)
+    if not success:
+        return jsonify({"hata": f"Email kayıtları silinemedi: {mesaj}"}), 500
+
     user_repository.delete(user)
+
+    if request.is_json:
+        return jsonify({"mesaj": "Kullanıcı başarıyla silindi"}), 200
     flash("Kullanıcı başarıyla silindi.", "success")
     return redirect(url_for('user_bp.kullanicilar'))
 
@@ -197,7 +165,7 @@ def delete_user(user_id):
 @token_required
 def get_borrow_id():
     user_id = g.user_id
-    borrow =Borrow.query.filter(user_id=user_id).filter(Borrow.ceza > 0).first()
+    borrow = Borrow.query.filter(Borrow.user_id == user_id, Borrow.ceza > 0).first()
     return {"borrow_id": borrow.id if borrow else None}
 
 @user_bp.route("/get_user_id")
@@ -209,5 +177,22 @@ def get_user_id():
         return jsonify({"error": "not logged in"}), 401
     return jsonify({"user_id": user_id})
 
+@user_bp.route('/şifre_panel')
+@token_required
+def şifre_panel():
+    return render_template('sifre_degistir.html')
+
+@user_bp.route('/sifre_degistir', methods=['POST'])
+@token_required
+def sifre_degistir():
+    try:
+        data = request.get_json()
+        success, mesaj = change_password(data.get('isim'), data.get('eskiSifre'), data.get('yeniSifre')) # İş Katmanı çağrısı
+        if success:
+            return jsonify({"mesaj": mesaj}), 200
+        else:
+            return jsonify({"hata": mesaj}), 401
+    except Exception as e:
+        return jsonify({"hata": "Sunucu hatası", "detay": str(e)}), 500
 
 
