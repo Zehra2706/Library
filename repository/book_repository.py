@@ -1,8 +1,6 @@
 from entity.book_entity import Book
 from core.database import db
 
-# class BookRepository:
-
 @staticmethod
 def get_all():
         return Book.query.all()
@@ -15,15 +13,11 @@ def search(query):
 def get_by_id(book_id):
         return Book.query.get(book_id)
 
-
 @staticmethod
 def get_by_name(name):
         return Book.query.filter_by(isim=name).first()
 
-# def add(book):
-#         db.session.add(book)
-#         db.session.commit()
-
+#**kwargs = anahtar–değer (key=value) şeklinde sınırsız parametre alır.
 @staticmethod
 def create(**kwargs):
     book = Book(**kwargs)

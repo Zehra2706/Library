@@ -4,7 +4,7 @@ class Config:
         # Flask
     SECRET_KEY = os.environ.get("SECRET_KEY", "supersecretkey123")
 
-    # Database
+    # Database port = 3308
     SQLALCHEMY_DATABASE_URI = os.environ.get(
         "DATABASE_URL",
         "mysql+pymysql://root:Zehra123.@localhost/kutuphane"

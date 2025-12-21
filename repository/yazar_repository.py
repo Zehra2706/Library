@@ -1,8 +1,6 @@
 from entity.yazar_entity import Yazar
 from core.database import db
 
-# class BookRepository:
-
 @staticmethod
 def get_all():
         return Yazar.query.all()

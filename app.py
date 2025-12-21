@@ -1,7 +1,7 @@
 import os
 from flask_apscheduler import APScheduler
 from services.borrow_services import auto_approve_old_requests
-from flask import Flask, jsonify, session
+from flask import Flask
 from flask_cors import CORS
 from flask_migrate import Migrate
 from send_emails import send_email
@@ -14,14 +14,11 @@ import time
 import pymysql
 
 scheduler = APScheduler()
-# Kendi modüllerimizi import ediyoruz
-
 
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
-    # Kütüphane init (Başlatma)
     db.init_app(app)
     Migrate(app, db)
     CORS(app)
@@ -53,24 +50,11 @@ def create_app(config_class=Config):
 
     return app
 
-
-
 def background_email_worker(app, db, EmailQueue, User):
     while True:
         with app.app_context():
             send_email(app, db, EmailQueue, User)
         time.sleep(10)  # her 10 saniyede bir mail kuyruğunu kontrol eder
-
-# @app.route("/get_user_id")
-# def get_user_id():
-#     user_id = session.get("user_id")
-
-#     if not user_id:
-#         return jsonify({"error": "not logged in"}), 401
-
-#     return jsonify({"user_id": user_id})
-
-
 
 if __name__ == "__main__":
     app = create_app()
@@ -78,14 +62,11 @@ if __name__ == "__main__":
         with app.app_context(): 
             print("FLASK DB:", db.engine.url)
 
-        # db.drop_all() # Gerekirse tüm tabloları siler
             db.create_all() # Tabloları oluşturur
             print("Veritabanı tabloları oluşturuldu.")
         import threading
-# ... diğer importlar
-# ... app, db, EmailQueue, User nesnelerinin tanımlandığı yer
 
-# Gerekli argümanlar bir tuple olarak 'args' içine geçirilir.
+# Gerekli argümanlar bir tuple(değiştirilebilir veri grubu) olarak 'args' içine geçirilir.
         thread_args = (app, db, EmailQueue, User)
 
         email_thread = threading.Thread(
@@ -95,8 +76,6 @@ if __name__ == "__main__":
         email_thread.daemon = True # Uygulama kapandığında thread'in de kapanmasını sağlar
         email_thread.start()
 
-# app.run(...)    
-    #threading.Thread(target=background_email_worker, daemon=True).start()
         app.run(
             debug=True,
             use_reloader=False # Yeniden yükleyiciyi devre dışı bırakır

@@ -2,8 +2,6 @@ from entity.user_entity import User
 from core.database import db
 from entity.email_entity import EmailQueue
 
-# class UserRepository:
-
 @staticmethod
 def get_by_id(user_id):
         return User.query.get(user_id)

@@ -10,6 +10,8 @@ class Borrow(db.Model):
     iade_tarihi = db.Column(db.DateTime)
     gercek_iade_tarihi = db.Column(db.DateTime, nullable=True)
     ceza = db.Column(db.Float, default=0.0)
+    gecikme_gun = db.Column(db.Integer, default=0)
+    last_penalty_date = db.Column(db.Date)
     durum = db.Column(db.String(20), default='beklemede')
     book = db.relationship(
         'Book',

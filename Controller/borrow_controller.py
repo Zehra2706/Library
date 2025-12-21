@@ -6,10 +6,12 @@ from flask import flash, redirect, url_for
 
 borrow_bp = Blueprint('borrow_bp', __name__, template_folder='templates')
 
+#Ana sayfa
 @borrow_bp.route('/')
 def index():
     return redirect('/tum_oduncler')
 
+#Bilgilerle ödünç isteği oluşturur. 
 @borrow_bp.route('/odunc', methods=['POST'])
 @token_required
 def odunc_al():
@@ -32,6 +34,7 @@ def odunc_al():
 
     return redirect(url_for("book_bp.kitap_detay", kitap_id=book_id))
 
+#Bekleyen ödünçleri getirir.
 @borrow_bp.route('/api/bekleyen_oduncler')
 @token_required
 def api_bekleyen_oduncler():
@@ -40,6 +43,7 @@ def api_bekleyen_oduncler():
     oduncler = get_pending_borrows()
     return jsonify({"success": True, "oduncler": oduncler})
 
+#Bekleyen ödünçleri gösteren sayfaya yönlendirir.
 @borrow_bp.route('/bekleyen_oduncler')
 @token_required
 def bekleyen_oduncler():
@@ -56,6 +60,7 @@ def bekleyen_oduncler():
 
     return render_template("bekleyen_oduncler.html", oduncler=oduncler)
 
+#Ödüncü onaylar
 @borrow_bp.route('/odunc_onayla/<int:odunc_id>', methods=['POST'])
 @token_required
 def odunc_onayla(odunc_id):
@@ -78,6 +83,7 @@ def odunc_onayla(odunc_id):
         
     return redirect(url_for('borrow_bp.bekleyen_oduncler'))
 
+#Ödüncü reddeder.
 @borrow_bp.route('/odunc_reddet/<int:odunc_id>', methods=['POST'])
 @token_required
 def odunc_reddet(odunc_id):
@@ -100,6 +106,7 @@ def odunc_reddet(odunc_id):
         
     return redirect(url_for('borrow_bp.bekleyen_oduncler'))
 
+#Kullanıcıya ait ödüncleri verir.
 @borrow_bp.route('/odunclerim')
 @token_required
 def odunclerim():
@@ -118,6 +125,7 @@ def odunclerim():
 
     return render_template("odunclerim.html", oduncler=liste, mode="all")
 
+#Cezalı olan ödünçleri verir.
 @borrow_bp.route("/late_borrows")
 @token_required
 def late_borrows():
@@ -136,6 +144,7 @@ def late_borrows():
 
     return render_template("odunclerim.html", oduncler=liste, mode="late")
 
+#Tüm ödünçleri getirir.
 @borrow_bp.route('/tum_oduncler')
 @token_required
 def tum_oduncler():
@@ -160,6 +169,7 @@ def tum_oduncler():
        
     return render_template("tum_oduncler.html", oduncler=liste, mode=mode)
 
+#İade alır.
 @borrow_bp.route('/iade_al/<int:odunc_id>', methods=['GET','POST'])
 @token_required
 def iade_al(odunc_id):

@@ -1,20 +1,14 @@
 from datetime import datetime, timedelta
-
-#from flask import current_app
-# from werkzeug.security import generate_password_hash, check_password_hash
 from entity.book_entity import Book
 from core.database import db    
 from entity.borrow_entity import Borrow
-from entity.user_entity import User
-from entity.email_entity import EmailQueue
-from sqlalchemy import func
-
 from repository import book_repository 
 from repository import borrow_repository
 from repository import user_repository
-from repository import email_repository 
 
+#24 saatten uzun süredir bekleyen ödünç taleplerini otomatik onaylamak için kullanılır.
 def auto_approve_old_requests(app):
+    # db de işlem yapmak için kullanılır.
     with app.app_context():
         print("AUTO APPROVE JOB ÇALIŞTI:", datetime.now())
 
@@ -26,36 +20,32 @@ def auto_approve_old_requests(app):
         ).all()
         print("Bulunan bekleyen kayıt sayısı:", len(bekleyenler))
 
-
         for o in bekleyenler:
             o.durum = "onaylandı"
-            # iade tarihi (senin sistemine göre)
             o.iade_tarihi = o.alis_tarihi + timedelta(minutes=1)
 
-
         if bekleyenler:
-            db.session.commit()
+            db.session.commit() # eger kayıt varsa db'ye yaz.
 
+#Kullanıcının kitap ödünç talebi oluşturması için kullanılır.
 def request_borrow(user_id, book_id):
     kitap = book_repository.get_by_id(book_id)
     if not kitap or (kitap.mevcut is None or kitap.mevcut <= 0):
         return False, "Kitap stokta yok veya bulunamadı."
-
+    #kitabın elinde olup olmadıgının kontrolunu yapar.
+    if borrow_repository.has_active_same_book(user_id, book_id):
+        return False, "Bu kitap zaten üzerinizde veya bekleyen bir talebiniz var."
+    #Eline 5 den fazla kitap almamasını kontrol eder.
     aktif_kitap_sayisi = borrow_repository.count_active_borrows(user_id)
     if aktif_kitap_sayisi >= 5:
         return False, "Üzerinizde zaten 5 kitap var. Yeni kitap alabilmek için iade yapmalısınız."
     
     bugun = datetime.utcnow().date()
-    
-    # Günlük limit kontrolü (Max 3 onaylanmış/beklemede ödünç)
-    
+    # Gün içinde 3 den fazla kitap alınamaz.   
     if borrow_repository.count_daily_requests(user_id, bugun) >= 3:
         return False, "Aynı gün 3' den fazla kitap alamazsınız!"
 
-    if borrow_repository.exists_same_book_today(user_id, book_id, bugun):
-        return False, "Bu kitap için bugün zaten talep gönderdiniz."
-
-   # now = datetime.utcnow()
+    #Ödünç oluşturulur.
     odunc = Borrow(
         user_id=user_id,
         book_id=book_id,
@@ -64,15 +54,17 @@ def request_borrow(user_id, book_id):
         iade_tarihi=None
     )
 
-    borrow_repository.add(odunc)
+    borrow_repository.add(odunc) # odunc db ye eklenir.
     return True, f"'{kitap.baslik}' kitabı için ödünç talebiniz personel onayına gönderildi."
 
+#Personelin göreceği bekleyen talepler
 def get_pending_borrows():
     bekleyenler = borrow_repository.filter_by(durum='beklemede').all()
     liste = []
     for o in bekleyenler:
         user = user_repository.get_by_id(o.user_id)
         kitap = book_repository.get_by_id(o.book_id)
+        # Bekleyenleri listeye ekler.
         liste.append({
             "id": o.id,
             "kullanici": user.isim if user else "Silinmiş",
@@ -81,6 +73,7 @@ def get_pending_borrows():
         })
     return liste
 
+#Personel onaylar.
 def approve_borrow(odunc_id):
     odunc = borrow_repository.get_by_id(odunc_id)
     if not odunc:
@@ -94,7 +87,7 @@ def approve_borrow(odunc_id):
 
     now = datetime.utcnow()
     odunc.durum = 'onaylandı'
-    # Personel onayı ile gerçek iade tarihi 1 gün olarak ayarlanır (orijinal koddaki gibi)
+    # Personel onayı ile gerçek iade tarihi 1 gün olarak ayarlanır.
     odunc.alis_tarihi = now
     odunc.iade_tarihi = now + timedelta(minutes=1)
 
@@ -102,6 +95,7 @@ def approve_borrow(odunc_id):
 
     return True, f"'{kitap.baslik}' ödünç verildi. İade tarihi: {odunc.iade_tarihi.strftime('%Y-%m-%d')}", odunc.book_id
 
+#Personel reddeder.
 def reject_borrow(odunc_id):
     odunc = borrow_repository.get_by_id(odunc_id)
     if not odunc:
@@ -111,18 +105,13 @@ def reject_borrow(odunc_id):
     borrow_repository.update()
     return True, "İstek reddedildi."
 
+#Kullanıcı kendi ödünçlerini görür.
 def get_user_borrows(user_id):
     simdi = datetime.utcnow()
     oduncler = borrow_repository.filter_by(user_id=user_id).all()
     liste = []
     for o in oduncler:
         kitap = Book.query.get(o.book_id)
-        gecikme_gun = 0
-
-        if o.iade_tarihi and simdi > o.iade_tarihi and o.durum == "onaylandı":
-            gecikme_gun = (simdi - o.iade_tarihi).days
-           # ceza = gecikme_gun * 3.0
-            
         liste.append({
             "kitap": kitap.baslik if kitap else "Silinmiş",
             "alis_tarihi": o.alis_tarihi.strftime("%Y-%m-%d"),
@@ -133,14 +122,15 @@ def get_user_borrows(user_id):
                     if o.iade_tarihi
                     else "-"
                     ),            
-            "gecikme_gun": gecikme_gun,
+            "gecikme_gun": o.gecikme_gun,
             "durum": o.durum,
             "ceza": o.ceza
         })
     return liste
 
+#personel için tüm kayıtlar
 def get_all_borrows(user_id=None):
-    db.session.expire_all()  # EVENT / TRIGGER sonrası GÜNCEL veri için
+    db.session.expire_all()  # EVENT / TRIGGER sonrası güncel veri için kullanılır.
 
     simdi = datetime.utcnow()
     if user_id:
@@ -153,11 +143,6 @@ def get_all_borrows(user_id=None):
         if not o.book_id:
             continue 
         kitap = book_repository.get_by_id(o.book_id)
-
-        gecikme_gun = 0
-        if o.iade_tarihi and simdi > o.iade_tarihi and o.durum == "onaylandı":
-            gecikme_gun = (simdi - o.iade_tarihi).days
-        #   ceza = gecikme_gun * 3.0
             
         liste.append({
             "id": o.id,
@@ -171,12 +156,13 @@ def get_all_borrows(user_id=None):
                     if o.iade_tarihi
                     else "-"
                     ),
-            "gecikme_gun": gecikme_gun,
+            "gecikme_gun": o.gecikme_gun,
             "durum": o.durum,
             "ceza": o.ceza
         }) 
     return liste
 
+#Kitap iade işlemi
 def process_return(odunc_id):
     odunc = borrow_repository.get_by_id(odunc_id)
     if not odunc:
@@ -186,49 +172,11 @@ def process_return(odunc_id):
     
     odunc.durum = "iade_edildi"
     odunc.gercek_iade_tarihi = datetime.utcnow()
-    
-    ceza_mesaj = "Kitap başarıyla iade alındı."
-    gecikme=0
+    db.session.commit()
+    return True, "Kitap başarıyla iade alındı."
 
-    # if odunc.iade_tarihi and odunc.gercek_iade_tarihi.date() > odunc.iade_tarihi.date():
-    #     gecikme = (odunc.gercek_iade_tarihi.date() - odunc.iade_tarihi.date()).days
-    #     odunc.ceza = gecikme * 10.0
-    #     ceza_mesaj = f"{odunc.user.isim} kitabı {gecikme} gün geç getirdi. Ceza: {odunc.ceza}₺"
-        
-    kitap = book_repository.get_by_id(odunc.book_id)
-    # if kitap:
-    #     kitap.mevcut = (kitap.mevcut or 0) + 1
-    #     book_repository.update(kitap)
-
-
-    if gecikme > 0:
-        email=EmailQueue(
-            user_id=odunc.user_id,
-            subjectt="Gecikme Cezası Bildirimi",
-            body=f"Sayın {odunc.user.isim},\n\n"
-                 f'"{kitap.baslik}" kitabını {gecikme} gün geç getirdiniz.\n'
-                 f"Toplam cezanız: {odunc.ceza}₺\n\n"
-                 f"İyi günler dileriz."
-        )    
-
-    else:
-        # Normal iade maili
-        email = EmailQueue(
-            user_id=odunc.user_id,
-            subjectt="Kitap İade Edildi",
-            body=f'Sayın {odunc.user.isim},\n\n'
-                 f'"{kitap.baslik}" kitabını başarıyla iade ettiniz.\n'
-                 f"İyi günler dileriz."
-        )
-   
-    email_repository.add(email)
-    return True, ceza_mesaj
-
+#Kullanıcının kitap alma fonksiyonu
 def borrow_book(user_id: int, book_id: int):
-    """
-    Kullanıcının kitap ödünç almasını kontrol eder ve uygular.
-    Return: (success: bool, message: str)
-    """
     # ID kontrolü
     try:
         user_id = int(user_id)

@@ -1,8 +1,6 @@
 from entity.category_entity import Category
 from core.database import db
 
-# class BookRepository:
-
 @staticmethod
 def get_all():
         return Category.query.all()
@@ -14,12 +12,9 @@ def search(query):
 def get_by_id(category_isim):
         return Category.query.get(category_isim)
 
-
 @staticmethod
 def get_by_name(name):
         return Category.query.filter_by(isim=name).first()
-
-
 
 @staticmethod
 def add(kategori):

@@ -71,10 +71,6 @@
         <input type="text" name="isim" placeholder="Kullanıcı Adı" required />
         <input type="email" name="email" placeholder="E-posta" required />
         <input type="password" name="parola" placeholder="Parola" required />
-        <select name="rol">
-          <option value="kullanici">Kullanıcı</option>
-          <option value="personel">Personel</option>
-        </select>
         <button type="submit">Kayıt Ol</button>
         <a href="/">Geri Dön</a>
       </div>
@@ -90,7 +86,6 @@
             isim: e.target.isim.value,
             email: e.target.email.value,
             parola: e.target.parola.value,
-            rol: e.target.rol.value,
           };
 
           const response = await fetch("http://127.0.0.1:5000/uye", {

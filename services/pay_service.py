@@ -5,14 +5,14 @@ import iyzipay
 import json
 from config import Config
 
+#Iyzipay’e yapılacak tüm isteklerde kullanılacak kimlik bilgileri
 options = {
     "api_key": Config.IYZI_PUBLIC_KEY,
     "secret_key": Config.IYZI_SECRET_KEY,
     "base_url": Config.IYZI_BASE_URL
 }
-
+#Kullanıcı ve toplam cezaları getir
 def get_user_and_penalties(user_id):
-    """Kullanıcı ve toplam cezaları getir"""
     user = User.query.get(user_id)
     if not user:
         return None, []
@@ -22,8 +22,8 @@ def get_user_and_penalties(user_id):
 def calculate_total_ceza(penalties):
     return sum(b.ceza for b in penalties)
 
+#Iyzipay ödeme request objesi
 def create_payment_request(user, total_ceza, card_data):
-    """Iyzipay ödeme request objesi"""
     return {
         "locale": "tr",
         "conversationId": str(user.id),
@@ -76,15 +76,15 @@ def create_payment_request(user, total_ceza, card_data):
         ]
     }
 
+#Ödeme isteğini iyzipay ile başlatır
 def initialize_payment(user, total_ceza, card_data):
-    """Ödeme isteğini iyzipay ile başlatır"""
     payment_request = create_payment_request(user, total_ceza, card_data)
     payment = iyzipay.CheckoutFormInitialize().create(payment_request, options)
     result = json.loads(payment.read().decode("utf-8"))
     return result
 
+#Callback sonrası ödeme kontrol ve ceza sıfırlama
 def process_payment_callback(token):
-    """Callback sonrası ödeme kontrol ve ceza sıfırlama"""
     request_data = {"locale":"tr","token":token}
     payment_result = iyzipay.CheckoutForm().retrieve(request_data, options)
     result = json.loads(payment_result.read().decode("utf-8"))

@@ -5,12 +5,7 @@ from services.pay_service import calculate_total_ceza, get_user_and_penalties, i
 pay_bp = Blueprint("pay_bp", __name__)
 
 
-options = {
-    "api_key": Config.IYZI_PUBLIC_KEY,
-    "secret_key": Config.IYZI_SECRET_KEY,
-    "base_url": Config.IYZI_BASE_URL
-}
-
+#Ödemeyi yapar.
 @pay_bp.route("/ceza_ode/<int:user_id>", methods=["GET","POST"])
 @token_required
 def ceza_ode(user_id):
@@ -55,7 +50,7 @@ def ceza_ode(user_id):
         })
     return redirect(result["paymentPageUrl"])
 
-
+#Ödeme sonrası sayfaya yönlendirir.
 @pay_bp.route("/payment_callback", methods=["POST"])
 def payment_callback():
     token = request.form.get("token")
