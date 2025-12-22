@@ -1,7 +1,6 @@
 from core.database import db
 from entity.category_entity import Category
 
-# from datetime import datetime
 
 
 class Book(db.Model):
@@ -9,7 +8,6 @@ class Book(db.Model):
     baslik = db.Column(db.String(150), nullable=False)
     yazar = db.Column(db.String(150), nullable=False)
     kategori_id = db.Column(db.Integer, db.ForeignKey("category.id"))  # EKLENECEK
-    #kategori_isim = db.Column(db.String(150), db.ForeignKey('category.isim'))
     kategori = db.relationship("Category", backref="kitaplar")
     mevcut = db.Column(db.Integer)
     image_url = db.Column(db.String(200), nullable=True)

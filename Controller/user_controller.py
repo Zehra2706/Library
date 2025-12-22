@@ -4,8 +4,10 @@ from auth import  token_required
 from entity.borrow_entity import Borrow
 from repository import email_repository
 import jwt
+import random, string
 from config import Config
 from services.user_services import (user_login, add_user, change_password ,get_all_users)
+from services.user_services import forgot_password
 
 user_bp = Blueprint('user_bp', __name__, template_folder='templates')
 
@@ -77,11 +79,16 @@ def login():
     )
     if isinstance(token, bytes):
         token = token.decode('utf-8')
+
+    redirect_url ="/şifre_panel" if user.temp_password else (
+        "/personel_panel" if user.rol == "personel" else "/kullanici_panel"
+    )
+
     resp = jsonify({
         "success": True,
         "rol": user.rol,
         "isim": user.isim,
-        "redirect": "/personel_panel" if user.rol == "personel" else "/kullanici_panel"
+        "redirect": redirect_url
     })  
     resp.set_cookie("token", token, httponly=True, samesite='Lax', secure=True , path="/")
 
@@ -127,7 +134,7 @@ def kullanicilar():
 def uye_ekle():
     data = request.get_json()
     # Veri kontrolü burada (Eksik alan kontrolü)
-    success, mesaj = add_user(data['isim'], data['email'], data['parola'], data.get('rol', 'kullanici')) # İş Katmanı çağrısı
+    success, mesaj = add_user(data['isim'], data['email'], data['parola']) # İş Katmanı çağrısı
     if success:
         return jsonify({"mesaj": mesaj}), 200
     else:
@@ -195,4 +202,22 @@ def sifre_degistir():
     except Exception as e:
         return jsonify({"hata": "Sunucu hatası", "detay": str(e)}), 500
 
+@user_bp.route('/forgot_password_page')
+def forgot_password_page():
+    return render_template("forgot_password.html")
 
+@user_bp.route('/forgot_password' , methods=['POST'])
+def forgot_password_route():
+    data = request.get_json()
+    isim = data.get('isim')
+    email = data.get('email')
+
+    if not isim or not email:
+        return jsonify({"hata": "Eksik bilgi"}), 400
+    
+    success,mesaj =forgot_password(isim ,email)
+    if success:
+        return jsonify({"mesaj":mesaj}),200
+    else:
+        return jsonify({"hata":mesaj}),404
+        

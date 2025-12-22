@@ -1,7 +1,5 @@
 import datetime
 from core.database import db
-# from datetime import datetime
-
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -10,7 +8,9 @@ class User(db.Model):
     parola = db.Column(db.String(300), nullable=False)
     rol = db.Column(db.String(50), nullable=False)
     giris_tarihi = db.Column(db.DateTime, default=datetime.datetime.utcnow)  # EKLENDİ
-    
+    temp_password = db.Column(db.Boolean, default=False)
+
+
     def to_dict(self):
         return {
             'id': self.id,

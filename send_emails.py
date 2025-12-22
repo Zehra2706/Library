@@ -1,16 +1,12 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
-from datetime import datetime
-
-# NOT: 'app.app_context()' çağrısı, bu fonksiyonu çağıran Thread tarafından yapılmalıdır (app.py'deki background_email_worker).
-# Ancak fonksiyonun kendi içinde de tutarak tek başına çağrılabilmesini sağlıyoruz.
 
 SMTP_USERNAME = "libraryysystem@gmail.com"
 SMTP_PASSWORD = "pxwy wmvk jxxs rxsy" # Lütfen bu şifrenin Uygulama Şifresi olduğundan emin olun.
 
 def send_email(app, db, EmailQueue, User):
-    # Uygulama bağlamını koruyarak çalışmasını sağlıyoruz.
+    # Uygulama bağlamını koruyarak çalışmasını sağlar.
     with app.app_context():
         # Gönderilmemiş en eski tek bir kaydı çek. Bu, kuyruk kilitlenmesini önler.
         mail = EmailQueue.query.filter_by(sent=0).order_by(EmailQueue.create_at.asc()).first()
@@ -20,9 +16,7 @@ def send_email(app, db, EmailQueue, User):
 
         recipient = None
         
-        try:
-            # --- ALICI ADRESİNİ BELİRLEME MANTIĞI ---
-            
+        try:            
             if mail.user_id is None:
                 # Kullanıcı silinmiş: Adresi doğrudan recipient_email sütunundan al.
                 recipient = mail.recipient_email 
@@ -74,7 +68,3 @@ def send_email(app, db, EmailQueue, User):
             db.session.rollback()
             print(f"Kritik Gönderim/İşleme Hatası ({mail.id}): {e}")
             
-            # NOT: Sürekli tekrar eden hataları önlemek için burada
-            # mail.attempt_count gibi bir sütun kullanıp deneme sayısını artırmak
-            # ve belirli bir sayıya ulaşınca göndermeyi durdurmak en iyisidir.
-            # Şimdilik, sadece rollback yapıyoruz ki thread çökerse veritabanı oturumu kilitlenmesin.

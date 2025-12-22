@@ -81,7 +81,7 @@
         <input
           type="password"
           id="eskiSifre"
-          placeholder="Mevcut Şifre"
+          placeholder="Mevcut Şifre / Mailden Gelen Şifre"
           required
         />
         <input
@@ -106,7 +106,7 @@
     document
       .getElementById("sifreForm")
       .addEventListener("submit", async (e) => {
-        e.preventDefault(); // sayfanın yenilenmesini önler. (form ajax ile gönderilecek)
+        e.preventDefault();
 
         const isim = localStorage.getItem("isim");
         const eskiSifre = document.getElementById("eskiSifre").value;
@@ -116,44 +116,44 @@
 
         const mesajDiv = document.getElementById("mesaj");
 
-        if (yeniSifre !== yeniSifreTekrar) {
-          mesajDiv.textContent = "Yeni Şifreler Uyuşmuyor!";
+        if (!isim) {
+          mesajDiv.textContent =
+            "Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.";
           mesajDiv.className = "error";
           return;
         }
 
-        if (!eskiSifre || !yeniSifre) {
-          alert("Her iki alan da doldurulmalıdır!");
+        if (yeniSifre !== yeniSifreTekrar) {
+          mesajDiv.textContent = "Yeni şifreler uyuşmuyor!";
+          mesajDiv.className = "error";
           return;
         }
 
         try {
-          const response = await fetch("http://127.0.0.1:5000/sifre_degistir", {
+          const response = await fetch("/sifre_degistir", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               isim: isim,
               eskiSifre: eskiSifre,
               yeniSifre: yeniSifre,
-            }), //Flask sunucusuna /login adresine bir POST isteği gönderir.JSON formatında {username, password} verisi yollar.
+            }),
           });
 
-          const result = await response.json(); // json formatında gelen veriyi çözümler
+          const result = await response.json();
 
           if (response.ok) {
             mesajDiv.textContent = result.mesaj;
             mesajDiv.className = "success";
             setTimeout(() => {
-              //Bu satır bir zamanlayıcıdır.setTimeout(() => { ... }, 2000) → 2000 milisaniye (yani 2 saniye) bekler, sonra içteki kodu çalıştırır.
-              window.location.href = "kullanici_panel";
+              window.location.href = "/";
             }, 2000);
           } else {
-            mesajDiv.textContent = result.hata; //Flask tarafı hata mesajı döndürmüştür
+            mesajDiv.textContent = result.hata;
             mesajDiv.className = "error";
           }
-        } catch (err) {
-          //catch, bir kod bloğunda hata olduğunda:Programın durmasını engeller,O hatayı “yakalar”,Bizim o hataya göre ne yapacağımıza karar vermemizi sağlar.
-          mesajDiv.textContent = "Sunucu Hatası Oluştu!";
+        } catch {
+          mesajDiv.textContent = "Sunucu hatası oluştu!";
           mesajDiv.className = "error";
         }
       });
