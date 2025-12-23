@@ -296,3 +296,25 @@ END$$
 
 DELIMITER ;
 
+--Bir kitabın aktif ödünçlerini kontrol eder.
+DELIMITER $$
+
+CREATE TRIGGER trg_block_book_delete_if_active_borrow
+BEFORE DELETE ON book
+FOR EACH ROW
+BEGIN
+    DECLARE aktif_sayi INT;
+
+    SELECT COUNT(*)
+    INTO aktif_sayi
+    FROM borrow
+    WHERE book_id = OLD.id
+      AND durum = 'onaylandı';
+
+    IF aktif_sayi > 0 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Bu kitap şu anda ödünçte. Silinemez.';
+    END IF;
+END$$
+
+DELIMITER ;

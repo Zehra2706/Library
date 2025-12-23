@@ -18,9 +18,8 @@ END$$
 
 DELIMITER ;
 
---Her gün gecikenlere günlük ceza ekler.
+--Her gün geciken ödünçlere günlük ceza ekler.
 DELIMITER $$
-
 CREATE EVENT ev_daily_penalty
 ON SCHEDULE EVERY 1 DAY
 STARTS CURRENT_DATE + INTERVAL 1 DAY
@@ -38,7 +37,6 @@ BEGIN
             OR last_penalty_date < CURRENT_DATE
         );
 END$$
-
 DELIMITER ;
 
 --Gecikme gün sayısını her gün günceller.

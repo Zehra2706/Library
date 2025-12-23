@@ -1,4 +1,5 @@
-from sqlalchemy.exc import IntegrityError #SQLAlchemy’den veritabanı bütünlük hatalarını yakalamak için
+from sqlalchemy.exc import IntegrityError, OperationalError, DBAPIError#SQLAlchemy’den veritabanı bütünlük hatalarını yakalamak için
+# from sqlalchemy.exc import IntegrityError 
 from core.database import db
 from repository import book_repository, category_repository, yazar_repository
 
@@ -77,15 +78,25 @@ def delete_book(kitap_id):
     if not kitap:
         return False, "Kitap bulunamadı."
 
-    #hata yakalar.
     try:
         book_repository.delete(kitap)
         return True, f"'{kitap.baslik}' adlı kitap silindi."
+
+    except (OperationalError, DBAPIError) as e:
+        db.session.rollback()
+
+        hata_metni = str(e.orig) if hasattr(e, "orig") else str(e)
+
+        # trigger mesajını yakala
+        if "ödünçte" in hata_metni or "onaylandı" in hata_metni:
+            return False, "Bu kitap ödünçte olduğu için silinemez."
+
+        return False, "Veritabanı kaynaklı bir hata oluştu."
+
     except IntegrityError:
         db.session.rollback()
-        return False, "Bu kitap ödünçte olduğu için silinemez"
+        return False, "Bu kitap silinemez (bağlı kayıtlar var)."
+
     except Exception as e:
         db.session.rollback()
-        return False, "Silme sırasında hata oluştu"        
-
- 
+        return False, "Silme sırasında beklenmeyen bir hata oluştu."
