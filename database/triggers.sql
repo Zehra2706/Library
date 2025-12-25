@@ -228,14 +228,17 @@ DELIMITER ;
 DELIMITER $$
 
 CREATE TRIGGER trg_user_after_delete
-BEFORE DELETE ON user
+BEFORE DELETE ON `user`
 FOR EACH ROW
 BEGIN
     INSERT INTO email_queue (
-        user_id, subjectt, body, sent, create_at, recipient_email
+        subjectt,
+        body,
+        sent,
+        create_at,
+        recipient_email
     )
     VALUES (
-        OLD.id,
         'Hesap Silindi',
         CONCAT('Merhaba ', OLD.isim, ', hesabınız sistemden silindi.'),
         0,

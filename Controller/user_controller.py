@@ -140,7 +140,7 @@ def uye_ekle():
     else:
         return jsonify({"hata": mesaj}), 400
 
-@user_bp.route('/delete_user/<int:user_id>', methods=['DELETE'])
+@user_bp.route('/delete_user/<int:user_id>', methods=['POST'])
 @token_required
 def delete_user(user_id):
     if g.rol != "personel":
